@@ -1,24 +1,24 @@
 BINARY_NAME=streakr
 .DEFAULT_GOAL := run
 
-build:
+build: fmt tidy
 	@ GOOS=linux GOARCH=amd64 go build -o bin/${BINARY_NAME}
 
 run: build
 	@ ./bin/${BINARY_NAME}
 
 clean:
-	go clean
-	rm -rf ./bin/*
+	@ go clean
+	@ rm -rf ./bin/*
 
 test:
 	go test ./...
 
 tidy:
-	go mod tidy
+	@ go mod tidy
 
 fmt:
-	go fmt ./...
+	@ go fmt ./...
 
 install: build
 	@ sudo cp bin/${BINARY_NAME} /usr/local/bin/${BINARY_NAME}
@@ -34,4 +34,4 @@ help:
 	@ echo "  make fmt     - Format the code"
 	@ echo "  make help    - Show this help message"
 
-.PHONY: build run clean test tidy fmt help
+.PHONY: build run clean test tidy fmt install help

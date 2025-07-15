@@ -13,6 +13,7 @@ type StreakrConfig struct {
 	DataDir       string
 	LogFileDir    string
 	LogFileName   string
+	StoreName     string
 }
 
 var streakrConfigInstance *StreakrConfig = nil
@@ -35,6 +36,7 @@ func BootstrapConfig() {
 		streakrConfigInstance.DataDir = filepath.Join(streakrConfigInstance.ConfigRootDir, "data")
 		streakrConfigInstance.LogFileDir = filepath.Join(streakrConfigInstance.ConfigRootDir, "logs")
 		streakrConfigInstance.LogFileName = "streakr.log"
+		streakrConfigInstance.StoreName = "streakr.db"
 
 		// Create necessary directories
 		err = os.MkdirAll(streakrConfigInstance.ConfigRootDir, 0700)

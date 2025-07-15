@@ -10,6 +10,7 @@ run: build
 clean:
 	@ go clean
 	@ rm -rf ./bin/*
+	@ rm -rf ~/.config/streakr
 
 test:
 	go test ./...
@@ -20,9 +21,8 @@ tidy:
 fmt:
 	@ go fmt ./...
 
-install: build
-	@ sudo cp bin/${BINARY_NAME} /usr/local/bin/${BINARY_NAME}
-	@ sudo chmod +x /usr/local/bin/${BINARY_NAME}
+install: clean
+	@ go install .
 
 help:
 	@ echo "Available commands:"

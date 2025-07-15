@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/Atharva21/streakr/cmd"
+	_ "github.com/Atharva21/streakr/internal/streakr"
 )
 
 func main() {
@@ -20,6 +22,7 @@ func main() {
 		<-sigChan
 		cancel() // Cancel the context on interrupt
 	}()
+	slog.Info("Starting Streakr application...")
 
 	cmd.Execute(ctx)
 }

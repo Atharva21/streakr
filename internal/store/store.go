@@ -3,9 +3,12 @@ package store
 import (
 	"database/sql"
 	"embed"
+	"log/slog"
 	"os"
 	"sync"
 
+	"github.com/Atharva21/streakr/internal/shutdown"
+	"github.com/Atharva21/streakr/internal/util"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -35,6 +38,9 @@ func BootstrapStore(dbPath string) {
 		if err != nil {
 			panic("Failed to open streakr store: " + err.Error())
 		}
+		shutdown.RegisterCleanupHook(func() error {
+			return db.Close()
+		})
 		if err = db.Ping(); err != nil {
 			panic("Failed to connect to streakr store: " + err.Error())
 		}
@@ -53,4 +59,16 @@ func BootstrapStore(dbPath string) {
 			panic("Failed to apply streakr store configurations: " + err.Error())
 		}
 	})
+}
+
+func GetDB() *sql.DB {
+	if db == nil {
+		slog.Error("Database not initialized", "error", "GetDB called before BootstrapStore")
+		util.ErrorAndExitGeneric()
+	}
+	return db
+}
+
+func AddHabit(name, description, habitType string) error {
+	return nil
 }

@@ -20,6 +20,11 @@ import (
 //go:embed migrations
 var migrationsFS embed.FS
 
+const (
+	HabitTypeImprove = "improve"
+	HabitTypeQuit    = "quit"
+)
+
 var (
 	bootstrapStoreOnce sync.Once
 	db                 *sql.DB

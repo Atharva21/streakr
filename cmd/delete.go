@@ -29,11 +29,11 @@ streakr delete gym,water,smoke,run
 			return &se.StreakrError{TerminalMsg: "habit name cannot be empty"}
 		}
 		for i, query := range queries {
-			queries[i] = strings.TrimSpace(query)
-			if query == "" {
+			queries[i] = strings.ToLower(strings.TrimSpace(query))
+			if queries[i] == "" {
 				return &se.StreakrError{TerminalMsg: "habit name cannot be empty"}
 			}
-			if len(query) > 20 {
+			if len(queries[i]) > 20 {
 				return &se.StreakrError{TerminalMsg: "habit name cannot be > 20 chars"}
 			}
 		}

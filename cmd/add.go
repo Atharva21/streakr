@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/Atharva21/streakr/internal/service"
+	"github.com/Atharva21/streakr/internal/store"
 	se "github.com/Atharva21/streakr/internal/streakrerror"
 	"github.com/spf13/cobra"
 )
@@ -12,11 +14,11 @@ var addCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add a new habit to track",
 	Long: `Add will add new habit and start tracking the streaks.
-Add cmd lets you specify description and the type of habit
+Specify name of the habit in single word followed by streakr add
 
 Few examples:
 streakr add run --description "morning run 5kms"
-streakr add drink --description "drink 3l of water daily to stay hydrated"
+streakr add read --description "read 5 pages of any book"
 streakr add smoking --type quit
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -44,11 +46,11 @@ streakr add smoking --type quit
 		}
 
 		if habitType == "" {
-			habitType = "improve"
+			habitType = store.HabitTypeImprove
 		}
 		habitType = strings.ToLower(habitType)
-		if habitType != "improve" && habitType != "quit" {
-			return &se.StreakrError{TerminalMsg: "type must be either 'improve' or 'quit'"}
+		if habitType != store.HabitTypeImprove && habitType != store.HabitTypeQuit {
+			return &se.StreakrError{TerminalMsg: fmt.Sprintf("type must be either '%s' or '%s'", store.HabitTypeImprove, store.HabitTypeQuit)}
 		}
 
 		return service.AddHabit(cmd.Context(), habitName, description, habitType)
@@ -60,5 +62,5 @@ func init() {
 	addCmd.InitDefaultHelpFlag()
 	addCmd.Flags().Lookup("help").Shorthand = ""
 	addCmd.PersistentFlags().StringP("description", "d", "", "description of the habit")
-	addCmd.PersistentFlags().StringP("type", "t", "", "type of the habit (improve, quit) defaults to improve if unspecified")
+	addCmd.PersistentFlags().StringP("type", "t", "", fmt.Sprintf("type of the habit (%s, %s) defaults to %s if unspecified", store.HabitTypeImprove, store.HabitTypeQuit, store.HabitTypeImprove))
 }

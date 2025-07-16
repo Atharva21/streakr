@@ -3,7 +3,7 @@ package store
 import (
 	"database/sql"
 	"embed"
-	"log/slog"
+	"fmt"
 	"os"
 	"sync"
 
@@ -28,43 +28,42 @@ func BootstrapStore(dbPath string) {
 	bootstrapStoreOnce.Do(func() {
 		file, err := os.OpenFile(dbPath, os.O_CREATE|os.O_RDWR, 0600)
 		if err != nil {
-			panic("Failed to create streakr store: " + err.Error())
+			util.ErrorAndExitGeneric(err)
 		}
 		err = file.Close()
 		if err != nil {
-			panic("Failed to create streakr store: " + err.Error())
+			util.ErrorAndExitGeneric(err)
 		}
 		db, err = sql.Open("sqlite3", dbPath+"?_foreign_keys=on")
 		if err != nil {
-			panic("Failed to open streakr store: " + err.Error())
+			util.ErrorAndExitGeneric(err)
 		}
 		shutdown.RegisterCleanupHook(func() error {
 			return db.Close()
 		})
 		if err = db.Ping(); err != nil {
-			panic("Failed to connect to streakr store: " + err.Error())
+			util.ErrorAndExitGeneric(err)
 		}
 
 		d, err := iofs.New(migrationsFS, "migrations")
 		if err != nil {
-			panic("Failed to initialize streakr store migrations: " + err.Error())
+			util.ErrorAndExitGeneric(err)
 		}
 		m, err := migrate.NewWithSourceInstance("iofs", d, "sqlite3://"+dbPath+"?_foreign_keys=on")
 		if err != nil {
-			panic("Failed to initialize streakr store: " + err.Error())
+			util.ErrorAndExitGeneric(err)
 		}
 		defer m.Close()
 
 		if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-			panic("Failed to apply streakr store configurations: " + err.Error())
+			util.ErrorAndExitGeneric(err)
 		}
 	})
 }
 
 func GetDB() *sql.DB {
 	if db == nil {
-		slog.Error("Database not initialized", "error", "GetDB called before BootstrapStore")
-		util.ErrorAndExitGeneric()
+		util.ErrorAndExitGeneric(fmt.Errorf("DB not initialized, GetDB called before bootstrapStore"))
 	}
 	return db
 }

@@ -21,7 +21,7 @@ tidy:
 fmt:
 	@ go fmt ./...
 
-install: clean
+install:
 	@ go install .
 
 help:

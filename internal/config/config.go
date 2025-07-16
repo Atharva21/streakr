@@ -1,9 +1,12 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
+
+	"github.com/Atharva21/streakr/internal/shutdown"
 )
 
 var bootstrapConfigOnce sync.Once
@@ -25,12 +28,17 @@ func GetStreakrConfig() StreakrConfig {
 	return *streakrConfigInstance
 }
 
+func exitWithStderrGeneric(err error) {
+	fmt.Fprintf(os.Stderr, "An unexpected error occurred while bootstrapping necessary config files for streakr: %s", err.Error())
+	shutdown.GracefulShutdown(1)
+}
+
 func BootstrapConfig() {
 	bootstrapConfigOnce.Do(func() {
 		streakrConfigInstance = &StreakrConfig{}
 		userHomeDir, err := os.UserConfigDir()
 		if err != nil {
-			panic("Failed to get user config directory: " + err.Error())
+			exitWithStderrGeneric(err)
 		}
 		streakrConfigInstance.ConfigRootDir = filepath.Join(userHomeDir, "streakr")
 		streakrConfigInstance.DataDir = filepath.Join(streakrConfigInstance.ConfigRootDir, "data")
@@ -41,15 +49,15 @@ func BootstrapConfig() {
 		// Create necessary directories
 		err = os.MkdirAll(streakrConfigInstance.ConfigRootDir, 0700)
 		if err != nil {
-			panic("Failed to create streakr config directory: " + err.Error())
+			exitWithStderrGeneric(err)
 		}
 		err = os.MkdirAll(streakrConfigInstance.DataDir, 0700)
 		if err != nil {
-			panic("Failed to create streakr data directory: " + err.Error())
+			exitWithStderrGeneric(err)
 		}
 		err = os.MkdirAll(streakrConfigInstance.LogFileDir, 0700)
 		if err != nil {
-			panic("Failed to create streakr log directory: " + err.Error())
+			exitWithStderrGeneric(err)
 		}
 	})
 }

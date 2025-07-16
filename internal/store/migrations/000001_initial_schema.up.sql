@@ -1,19 +1,12 @@
 CREATE TABLE habits (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL UNIQUE,
-  description TEXT,
+  name TEXT NOT NULL UNIQUE CHECK (length(name) <= 20),
+  description TEXT CHECK (description IS NULL OR length(description) <= 200),
   habit_type TEXT CHECK (habit_type IN ('improve', 'quit')) NOT NULL DEFAULT 'improve',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
   last_logged DATETIME
 );
 CREATE INDEX idx_habits_name ON habits(name);
-
-CREATE TABLE habit_aliases (
-  habit_id INTEGER NOT NULL,
-  alias TEXT NOT NULL UNIQUE,
-  FOREIGN KEY (habit_id) REFERENCES habits(id) ON DELETE CASCADE
-);
-CREATE INDEX idx_habit_aliases_alias ON habit_aliases(alias);
 
 CREATE TABLE streaks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

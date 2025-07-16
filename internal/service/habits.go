@@ -24,42 +24,7 @@ func getHabitByName(appContext context.Context, name string) (generated.Habit, e
 	return habit, err
 }
 
-func getHabitbyAlias(appContext context.Context, name string) (generated.Habit, error) {
-	habit, err := store.GetQueries().GetHabitByAlias(appContext, name)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return habit, &se.StreakrError{TerminalMsg: fmt.Sprintf("No habit with alias %s", name)}
-		}
-		return habit, err
-	}
-	return habit, err
-}
-
-func getHabitByNameOrAlias(appContext context.Context, query string) (generated.Habit, error) {
-	habit, err := getHabitByName(appContext, query)
-	if err == nil {
-		return habit, err
-	}
-	var streakrErr *se.StreakrError
-	if !errors.As(err, &streakrErr) {
-		return habit, err
-	}
-	habit, err = getHabitbyAlias(appContext, query)
-	if err != nil && errors.As(err, &streakrErr) {
-		err = &se.StreakrError{TerminalMsg: fmt.Sprintf("No habit with name or alias %s", query)}
-	}
-	return habit, err
-}
-
-func AddHabit(appContext context.Context, name, description, habitType string, aliases []string) error {
-
-	// validate aliases are unique.
-	for _, alias := range aliases {
-		_, err := getHabitbyAlias(appContext, alias)
-		if err == nil {
-			return &se.StreakrError{TerminalMsg: fmt.Sprintf("Alias with name %s already exists", alias)}
-		}
-	}
+func AddHabit(appContext context.Context, name, description, habitType string) error {
 
 	habitId, err := store.GetQueries().AddHabit(
 		appContext,
@@ -81,19 +46,6 @@ func AddHabit(appContext context.Context, name, description, habitType string, a
 		return err
 	}
 
-	for _, alias := range aliases {
-		err = store.GetQueries().AddAliasForHabit(
-			appContext,
-			generated.AddAliasForHabitParams{
-				Alias:   alias,
-				HabitID: habitId,
-			},
-		)
-		if err != nil {
-			return err
-		}
-	}
-
 	slog.Info("habit saved successfully", slog.Int64("habitId", habitId))
 
 	return nil
@@ -102,7 +54,7 @@ func AddHabit(appContext context.Context, name, description, habitType string, a
 func DeleteHabits(appContext context.Context, queries []string) error {
 	habitsIDsToDelete := make([]int64, 0)
 	for _, query := range queries {
-		habit, err := getHabitByNameOrAlias(appContext, query)
+		habit, err := getHabitByName(appContext, query)
 		if err != nil {
 			return err
 		}

@@ -65,27 +65,6 @@ func (q *Queries) GetHabit(ctx context.Context, id int64) (Habit, error) {
 	return i, err
 }
 
-const getHabitByAlias = `-- name: GetHabitByAlias :one
-SELECT h.id, h.name, h.description, h.habit_type, h.created_at, h.last_logged
-FROM habits h
-JOIN habit_aliases ha ON h.id = ha.habit_id
-WHERE ha.alias = ?
-`
-
-func (q *Queries) GetHabitByAlias(ctx context.Context, alias string) (Habit, error) {
-	row := q.db.QueryRowContext(ctx, getHabitByAlias, alias)
-	var i Habit
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.Description,
-		&i.HabitType,
-		&i.CreatedAt,
-		&i.LastLogged,
-	)
-	return i, err
-}
-
 const getHabitByName = `-- name: GetHabitByName :one
 SELECT id, name, description, habit_type, created_at, last_logged FROM habits WHERE name = ?
 `

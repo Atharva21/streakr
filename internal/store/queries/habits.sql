@@ -9,12 +9,6 @@ SELECT * FROM habits WHERE id = ?;
 -- name: GetHabitByName :one
 SELECT * FROM habits WHERE name = ?;
 
--- name: GetHabitByAlias :one
-SELECT h.*
-FROM habits h
-JOIN habit_aliases ha ON h.id = ha.habit_id
-WHERE ha.alias = ?;
-
 -- name: ListHabits :many
 SELECT * FROM habits;
 

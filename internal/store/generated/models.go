@@ -18,11 +18,6 @@ type Habit struct {
 	LastLogged  sql.NullTime
 }
 
-type HabitAlias struct {
-	HabitID int64
-	Alias   string
-}
-
 type Streak struct {
 	ID          int64
 	HabitID     int64

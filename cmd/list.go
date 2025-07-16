@@ -21,7 +21,7 @@ streakr list
 			return err
 		}
 		for _, habit := range habits {
-			fmt.Println(habit.Name)
+			fmt.Printf("name: %v, desc: %v, type: %v\n", habit.Name, habit.Description.String, habit.HabitType)
 		}
 		return nil
 	},
@@ -30,4 +30,5 @@ streakr list
 func init() {
 	rootCmd.AddCommand(listCmd)
 	listCmd.InitDefaultHelpFlag()
+	addCmd.Flags().Lookup("help").Shorthand = ""
 }

@@ -45,4 +45,6 @@ func Execute(ctx context.Context) {
 
 func init() {
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
+	rootCmd.InitDefaultHelpFlag()
+	addCmd.Flags().Lookup("help").Shorthand = ""
 }

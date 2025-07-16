@@ -10,50 +10,54 @@ import (
 	"github.com/Atharva21/streakr/internal/store"
 	"github.com/Atharva21/streakr/internal/store/generated"
 	se "github.com/Atharva21/streakr/internal/streakrerror"
+	"github.com/mattn/go-sqlite3"
 )
 
-func isHabitWithNameOrAliasPresent(appContext context.Context, query string) (generated.Habit, error) {
-	habit, err := store.GetQueries().GetHabitByName(appContext, query)
+func getHabitByName(appContext context.Context, name string) (generated.Habit, error) {
+	habit, err := store.GetQueries().GetHabitByName(appContext, name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			habit, err = store.GetQueries().GetHabitByAlias(appContext, query)
-			if err != nil {
-				if errors.Is(err, sql.ErrNoRows) {
-					return habit, &se.StreakrError{TerminalMsg: fmt.Sprintf("No habit with name or alias %s", query)}
-				}
-				return habit, err
-			}
-		} else {
-			return habit, err
+			return habit, &se.StreakrError{TerminalMsg: fmt.Sprintf("No habit with name %s", name)}
 		}
+		return habit, err
+	}
+	return habit, err
+}
+
+func getHabitbyAlias(appContext context.Context, name string) (generated.Habit, error) {
+	habit, err := store.GetQueries().GetHabitByAlias(appContext, name)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return habit, &se.StreakrError{TerminalMsg: fmt.Sprintf("No habit with alias %s", name)}
+		}
+		return habit, err
+	}
+	return habit, err
+}
+
+func getHabitByNameOrAlias(appContext context.Context, query string) (generated.Habit, error) {
+	habit, err := getHabitByName(appContext, query)
+	if err == nil {
+		return habit, err
+	}
+	var streakrErr *se.StreakrError
+	if !errors.As(err, &streakrErr) {
+		return habit, err
+	}
+	habit, err = getHabitbyAlias(appContext, query)
+	if err != nil && errors.As(err, &streakrErr) {
+		err = &se.StreakrError{TerminalMsg: fmt.Sprintf("No habit with name or alias %s", query)}
 	}
 	return habit, err
 }
 
 func AddHabit(appContext context.Context, name, description, habitType string, aliases []string) error {
-	_, err := store.GetQueries().GetHabitByName(appContext, name)
-	if err == nil {
-		return &se.StreakrError{
-			TerminalMsg: "Cannot add another habit with same name, to list all habits: streakr list",
-		}
-	}
-	if !errors.Is(err, sql.ErrNoRows) {
-		return err
-	}
 
 	// validate aliases are unique.
 	for _, alias := range aliases {
-		_, err = store.GetQueries().GetHabitByAlias(
-			appContext,
-			alias,
-		)
+		_, err := getHabitbyAlias(appContext, alias)
 		if err == nil {
-			return &se.StreakrError{
-				TerminalMsg: "Cannot add another alias with same name, to get all aliases: streakr alias list",
-			}
-		}
-		if !errors.Is(err, sql.ErrNoRows) {
-			return err
+			return &se.StreakrError{TerminalMsg: fmt.Sprintf("Alias with name %s already exists", alias)}
 		}
 	}
 
@@ -69,6 +73,11 @@ func AddHabit(appContext context.Context, name, description, habitType string, a
 		},
 	)
 	if err != nil {
+		if sqliteErr, ok := err.(sqlite3.Error); ok {
+			if sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique || sqliteErr.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
+				return &se.StreakrError{TerminalMsg: fmt.Sprintf("Cannot add habit with name %s as it already exists", name)}
+			}
+		}
 		return err
 	}
 
@@ -91,16 +100,16 @@ func AddHabit(appContext context.Context, name, description, habitType string, a
 }
 
 func DeleteHabits(appContext context.Context, queries []string) error {
-	habitsToDelete := make([]generated.Habit, 0)
+	habitsIDsToDelete := make([]int64, 0)
 	for _, query := range queries {
-		habit, err := isHabitWithNameOrAliasPresent(appContext, query)
+		habit, err := getHabitByNameOrAlias(appContext, query)
 		if err != nil {
 			return err
 		}
-		habitsToDelete = append(habitsToDelete, habit)
+		habitsIDsToDelete = append(habitsIDsToDelete, habit.ID)
 	}
-	for _, habit := range habitsToDelete {
-		err := store.GetQueries().DeleteHabit(appContext, habit.ID)
+	for _, habitID := range habitsIDsToDelete {
+		err := store.GetQueries().DeleteHabit(appContext, habitID)
 		if err != nil {
 			return err
 		}

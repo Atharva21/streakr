@@ -1,7 +1,7 @@
 BINARY_NAME=streakr
 .DEFAULT_GOAL := run
 
-build: fmt tidy
+build: generate tidy fmt
 	@ GOOS=linux GOARCH=amd64 go build -o bin/${BINARY_NAME}
 
 run: build
@@ -11,6 +11,7 @@ clean:
 	@ go clean
 	@ rm -rf ./bin/*
 	@ rm -rf ~/.config/streakr
+	@ rm -rf ./internal/store/generated
 
 test:
 	go test ./...
@@ -21,8 +22,11 @@ tidy:
 fmt:
 	@ go fmt ./...
 
-install:
+install: build
 	@ go install .
+
+generate:
+	@ sqlc generate
 
 help:
 	@ echo "Available commands:"
@@ -34,4 +38,4 @@ help:
 	@ echo "  make fmt     - Format the code"
 	@ echo "  make help    - Show this help message"
 
-.PHONY: build run clean test tidy fmt install help
+.PHONY: build run clean test tidy fmt install generate help

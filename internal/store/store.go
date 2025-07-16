@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/Atharva21/streakr/internal/shutdown"
+	"github.com/Atharva21/streakr/internal/store/generated"
 	"github.com/Atharva21/streakr/internal/util"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
@@ -22,6 +23,7 @@ var migrationsFS embed.FS
 var (
 	bootstrapStoreOnce sync.Once
 	db                 *sql.DB
+	queries            *generated.Queries
 )
 
 func BootstrapStore(dbPath string) {
@@ -54,10 +56,12 @@ func BootstrapStore(dbPath string) {
 			util.ErrorAndExitGeneric(err)
 		}
 		defer m.Close()
-
 		if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 			util.ErrorAndExitGeneric(err)
 		}
+
+		queries = generated.New(db)
+
 	})
 }
 
@@ -68,6 +72,9 @@ func GetDB() *sql.DB {
 	return db
 }
 
-func AddHabit(name, description, habitType string) error {
-	return nil
+func GetQueries() *generated.Queries {
+	if queries == nil {
+		util.ErrorAndExitGeneric(fmt.Errorf("Queries instance not found, GetQueries called before code is generated"))
+	}
+	return queries
 }

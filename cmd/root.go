@@ -2,24 +2,32 @@ package cmd
 
 import (
 	"context"
-	"os"
+	"errors"
 
+	"github.com/Atharva21/streakr/internal/streakrerror"
+	"github.com/Atharva21/streakr/internal/util"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "streakr",
-	Short: "streakr is a habit tracking CLI",
-	Long: `streakr is a command-line tool for tracking habits and maintaining streaks.
-It allows users to add, view, and manage their habits directly from the terminal.
-It helps you improve good habits (like exercising, reading, etc.) and
-also helps you quit bad habits (like doomscrolling, junkfood, etc.).
-You can track your progress, set goals, and stay motivated with streakr.`,
+	Use:           "streakr",
+	Short:         "streakr is a habit tracking CLI",
+	Long:          `streakr is a command-line tool for tracking habits and maintaining streaks...`,
+	SilenceUsage:  true,
+	SilenceErrors: true,
 }
 
 func Execute(ctx context.Context) {
 	err := rootCmd.ExecuteContext(ctx)
 	if err != nil {
-		os.Exit(1)
+		var streakrErr *streakrerror.StreakrError
+		if errors.As(err, &streakrErr) && streakrErr.TerminalMsg != "" {
+			if streakrErr.ShowUsage {
+				rootCmd.Usage()
+			}
+			util.ErrorAndExit(streakrErr.TerminalMsg)
+		} else {
+			util.ErrorAndExitGeneric(err)
+		}
 	}
 }

@@ -2,7 +2,7 @@ CREATE TABLE habits (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   description TEXT,
-  habit_type TEXT CHECK (habit_type IN ('IMPROVE', 'QUIT')) NOT NULL DEFAULT 'IMPROVE',
+  habit_type TEXT CHECK (habit_type IN ('improve', 'quit')) NOT NULL DEFAULT 'improve',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
   last_logged DATETIME
 );

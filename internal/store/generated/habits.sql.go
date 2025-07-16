@@ -10,9 +10,10 @@ import (
 	"database/sql"
 )
 
-const addHabit = `-- name: AddHabit :exec
+const addHabit = `-- name: AddHabit :one
 INSERT INTO habits (name, description, habit_type, created_at)
 VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+RETURNING id
 `
 
 type AddHabitParams struct {
@@ -21,9 +22,11 @@ type AddHabitParams struct {
 	HabitType   string
 }
 
-func (q *Queries) AddHabit(ctx context.Context, arg AddHabitParams) error {
-	_, err := q.db.ExecContext(ctx, addHabit, arg.Name, arg.Description, arg.HabitType)
-	return err
+func (q *Queries) AddHabit(ctx context.Context, arg AddHabitParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, addHabit, arg.Name, arg.Description, arg.HabitType)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
 
 const deleteHabit = `-- name: DeleteHabit :exec

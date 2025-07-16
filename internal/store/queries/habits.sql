@@ -1,6 +1,7 @@
--- name: AddHabit :exec
+-- name: AddHabit :one
 INSERT INTO habits (name, description, habit_type, created_at)
-VALUES (?, ?, ?, CURRENT_TIMESTAMP);
+VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+RETURNING id;
 
 -- name: GetHabit :one
 SELECT * FROM habits WHERE id = ?;

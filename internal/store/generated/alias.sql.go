@@ -49,6 +49,19 @@ func (q *Queries) DeleteAllAliasesForHabit(ctx context.Context, habitID int64) e
 	return err
 }
 
+const getAliasCountForHabit = `-- name: GetAliasCountForHabit :one
+SELECT COUNT(*) as count
+FROM habit_aliases
+WHERE habit_id = ?
+`
+
+func (q *Queries) GetAliasCountForHabit(ctx context.Context, habitID int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getAliasCountForHabit, habitID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getAllAliasesForHabit = `-- name: GetAllAliasesForHabit :many
 SELECT alias
 FROM habit_aliases
@@ -76,4 +89,17 @@ func (q *Queries) GetAllAliasesForHabit(ctx context.Context, habitID int64) ([]s
 		return nil, err
 	}
 	return items, nil
+}
+
+const getHabitIdByAlias = `-- name: GetHabitIdByAlias :one
+SELECT habit_id
+FROM habit_aliases
+WHERE alias = ?
+`
+
+func (q *Queries) GetHabitIdByAlias(ctx context.Context, alias string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getHabitIdByAlias, alias)
+	var habit_id int64
+	err := row.Scan(&habit_id)
+	return habit_id, err
 }

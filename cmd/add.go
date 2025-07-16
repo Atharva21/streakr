@@ -20,53 +20,48 @@ streakr add drink 3l water --alias water,h2o --description drink 3l of water dai
 streakr add smoking --alias smoke --type quit
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Parse habit name from args
 		if len(args) == 0 {
-			return &se.StreakrError{TerminalMsg: "habit name cannot be empty", ShowUsage: true}
+			return &se.StreakrError{TerminalMsg: "habit name cannot be empty"}
 		}
 
-		// Clean and join habit name
 		habitName := strings.TrimSpace(strings.Join(args, " "))
 		if habitName == "" {
-			return &se.StreakrError{TerminalMsg: "habit name cannot be empty", ShowUsage: true}
+			return &se.StreakrError{TerminalMsg: "habit name cannot be empty"}
 		}
 		if len(habitName) > 50 {
-			return &se.StreakrError{TerminalMsg: "habit name cannot exceed 50 characters", ShowUsage: true}
+			return &se.StreakrError{TerminalMsg: "habit name cannot exceed 50 characters"}
 		}
 
-		// Parse flags
 		aliasStr, _ := cmd.Flags().GetString("alias")
 		description, _ := cmd.Flags().GetString("description")
 		habitType, _ := cmd.Flags().GetString("type")
 
 		if len(description) > 200 {
-			return &se.StreakrError{TerminalMsg: "description cannot exceed 200 characters", ShowUsage: true}
+			return &se.StreakrError{TerminalMsg: "description cannot exceed 200 characters"}
 		}
 
-		// Validate and default type
 		if habitType == "" {
 			habitType = "improve"
 		}
 		habitType = strings.ToLower(habitType)
 		if habitType != "improve" && habitType != "quit" {
-			return &se.StreakrError{TerminalMsg: "type must be either 'improve' or 'quit'", ShowUsage: true}
+			return &se.StreakrError{TerminalMsg: "type must be either 'improve' or 'quit'"}
 		}
 
-		// Parse aliases
 		var aliases []string
 		if aliasStr != "" {
 			aliasMap := make(map[string]bool)
 			aliases = strings.Split(aliasStr, ",")
 			if len(aliases) > 5 {
-				return &se.StreakrError{TerminalMsg: "cannot add more than 5 aliases at once", ShowUsage: true}
+				return &se.StreakrError{TerminalMsg: "cannot add more than 5 aliases at once"}
 			}
 			for i, alias := range aliases {
 				aliases[i] = strings.ToLower(strings.TrimSpace(alias))
 				if len(aliases[i]) > 15 {
-					return &se.StreakrError{TerminalMsg: "habit aliases cannot exceed 15 characters", ShowUsage: true}
+					return &se.StreakrError{TerminalMsg: "habit aliases cannot exceed 15 characters"}
 				}
 				if _, exists := aliasMap[aliases[i]]; exists {
-					return &se.StreakrError{TerminalMsg: "habit aliases must be unique", ShowUsage: true}
+					return &se.StreakrError{TerminalMsg: "habit aliases must be unique"}
 				}
 				aliasMap[aliases[i]] = true
 			}

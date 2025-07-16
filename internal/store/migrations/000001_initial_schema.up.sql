@@ -1,6 +1,6 @@
 CREATE TABLE habits (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
+  name TEXT NOT NULL UNIQUE,
   description TEXT,
   habit_type TEXT CHECK (habit_type IN ('improve', 'quit')) NOT NULL DEFAULT 'improve',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,

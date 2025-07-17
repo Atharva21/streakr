@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/Atharva21/streakr/internal/store"
@@ -110,7 +111,8 @@ func GetStatsForHabitName(appContext context.Context, habitName string) (int64, 
 	if err != nil {
 		return 0, 0, err
 	}
-	currentStreak, err := getCurrentStreakForHabit(appContext, habit)
+	c, err := getCurrentStreakForHabit(appContext, habit)
+	currentStreak := int64(c)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -118,10 +120,16 @@ func GetStatsForHabitName(appContext context.Context, habitName string) (int64, 
 	if err != nil {
 		return 0, 0, err
 	}
-	if int64(currentStreak) >= pastMaxStreak {
-		pastMaxStreak = int64(currentStreak)
+	if currentStreak >= pastMaxStreak {
+		pastMaxStreak = currentStreak
 	}
-	return int64(currentStreak), pastMaxStreak, nil
+	slog.Info(
+		"stats for habit",
+		slog.Int64("habitid", habit.ID),
+		slog.Int64("currentStreak", currentStreak),
+		slog.Int64("maxStreak", pastMaxStreak),
+	)
+	return currentStreak, pastMaxStreak, nil
 }
 
 func getCurrentStreakForHabit(appContext context.Context, habit generated.Habit) (int, error) {

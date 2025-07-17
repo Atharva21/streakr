@@ -49,51 +49,6 @@ func (q *Queries) DeleteStreakByID(ctx context.Context, id int64) error {
 	return err
 }
 
-const getAllStreaksForHabit = `-- name: GetAllStreaksForHabit :many
-SELECT id, habit_id, streak_start, streak_end,
-       julianday(streak_end) - julianday(streak_start) + 1 as streak_days
-FROM streaks
-WHERE habit_id = ?
-ORDER BY streak_start DESC
-`
-
-type GetAllStreaksForHabitRow struct {
-	ID          int64
-	HabitID     int64
-	StreakStart time.Time
-	StreakEnd   time.Time
-	StreakDays  int64
-}
-
-func (q *Queries) GetAllStreaksForHabit(ctx context.Context, habitID int64) ([]GetAllStreaksForHabitRow, error) {
-	rows, err := q.db.QueryContext(ctx, getAllStreaksForHabit, habitID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetAllStreaksForHabitRow
-	for rows.Next() {
-		var i GetAllStreaksForHabitRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.HabitID,
-			&i.StreakStart,
-			&i.StreakEnd,
-			&i.StreakDays,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getLatestStreak = `-- name: GetLatestStreak :one
 SELECT id, habit_id, streak_start, streak_end
 FROM streaks
@@ -134,26 +89,39 @@ func (q *Queries) GetLatestStreakForHabit(ctx context.Context, habitID int64) (S
 }
 
 const getMaxStreak = `-- name: GetMaxStreak :one
-SELECT MAX(julianday(streak_end) - julianday(streak_start) + 1) as max_streak_days
+SELECT CAST(COALESCE(MAX(julianday(streak_end) - julianday(streak_start) + 1), 0) AS INTEGER) as max_streak_days
 FROM streaks
 `
 
-func (q *Queries) GetMaxStreak(ctx context.Context) (interface{}, error) {
+func (q *Queries) GetMaxStreak(ctx context.Context) (int64, error) {
 	row := q.db.QueryRowContext(ctx, getMaxStreak)
-	var max_streak_days interface{}
+	var max_streak_days int64
 	err := row.Scan(&max_streak_days)
 	return max_streak_days, err
 }
 
 const getMaxStreakForHabit = `-- name: GetMaxStreakForHabit :one
-SELECT MAX(julianday(streak_end) - julianday(streak_start) + 1) as max_streak_days
+SELECT CAST(COALESCE(MAX(julianday(streak_end) - julianday(streak_start) + 1), 0) AS INTEGER) as max_streak_days
 FROM streaks
 WHERE habit_id = ?
 `
 
-func (q *Queries) GetMaxStreakForHabit(ctx context.Context, habitID int64) (interface{}, error) {
+func (q *Queries) GetMaxStreakForHabit(ctx context.Context, habitID int64) (int64, error) {
 	row := q.db.QueryRowContext(ctx, getMaxStreakForHabit, habitID)
-	var max_streak_days interface{}
+	var max_streak_days int64
+	err := row.Scan(&max_streak_days)
+	return max_streak_days, err
+}
+
+const getMaxStreakQuittingHabit = `-- name: GetMaxStreakQuittingHabit :one
+SELECT CAST(COALESCE(MAX(julianday(streak_end) - julianday(streak_start)), 0) AS INTEGER) as max_streak_days
+FROM streaks
+WHERE habit_id = ?
+`
+
+func (q *Queries) GetMaxStreakQuittingHabit(ctx context.Context, habitID int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getMaxStreakQuittingHabit, habitID)
+	var max_streak_days int64
 	err := row.Scan(&max_streak_days)
 	return max_streak_days, err
 }

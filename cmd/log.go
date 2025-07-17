@@ -39,7 +39,7 @@ This updates your current streak and last_logged timestamp.`,
 				return &se.StreakrError{TerminalMsg: "habit name cannot be > 20 chars"}
 			}
 		}
-		return service.LogHabitForToday(cmd.Context(), habitNames)
+		return service.LogHabitsForToday(cmd.Context(), habitNames)
 	},
 }
 

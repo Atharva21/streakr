@@ -11,7 +11,7 @@ import (
 	"github.com/Atharva21/streakr/internal/util"
 )
 
-func LogHabitForToday(appContext context.Context, habitNames []string) error {
+func LogHabitsForToday(appContext context.Context, habitNames []string) error {
 	habitsToLogToday := make([]generated.Habit, 0)
 	for _, habitName := range habitNames {
 		habit, err := getHabitByName(appContext, habitName)
@@ -103,6 +103,25 @@ func LogHabitForToday(appContext context.Context, habitNames []string) error {
 		}
 	}
 	return nil
+}
+
+func GetStatsForHabitName(appContext context.Context, habitName string) (int64, int64, error) {
+	habit, err := getHabitByName(appContext, habitName)
+	if err != nil {
+		return 0, 0, err
+	}
+	currentStreak, err := getCurrentStreakForHabit(appContext, habit)
+	if err != nil {
+		return 0, 0, err
+	}
+	pastMaxStreak, err := getPastMaxStreakForHabit(appContext, habit)
+	if err != nil {
+		return 0, 0, err
+	}
+	if int64(currentStreak) >= pastMaxStreak {
+		pastMaxStreak = int64(currentStreak)
+	}
+	return int64(currentStreak), pastMaxStreak, nil
 }
 
 func getCurrentStreakForHabit(appContext context.Context, habit generated.Habit) (int, error) {

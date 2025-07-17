@@ -2,7 +2,7 @@ BINARY_NAME=streakr
 .DEFAULT_GOAL := run
 
 build: generate tidy fmt
-	@ GOOS=linux GOARCH=amd64 go build -o bin/${BINARY_NAME}
+	@ GOOS=linux GOARCH=amd64 go build -o bin/linux/${BINARY_NAME}
 
 run: build
 	@ ./bin/${BINARY_NAME}

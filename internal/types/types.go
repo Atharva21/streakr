@@ -10,6 +10,8 @@ type HabitInfo struct {
 	Habit         generated.Habit
 	CurrentStreak int64
 	MaxStreak     int64
+	LastLogged    time.Time
+	LastMiss      time.Time
 }
 
 type HabitStatsForRange struct {

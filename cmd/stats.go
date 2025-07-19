@@ -9,7 +9,6 @@ import (
 	"github.com/Atharva21/streakr/internal/service"
 	se "github.com/Atharva21/streakr/internal/streakrerror"
 	"github.com/Atharva21/streakr/internal/tui"
-	"github.com/Atharva21/streakr/internal/util"
 	"github.com/spf13/cobra"
 )
 
@@ -129,23 +128,7 @@ to quickly create a Cobra application.`,
 				return &se.StreakrError{TerminalMsg: "Cannot get stats after latest streak"}
 			}
 		}
-		rangedStreaks, err := service.GetHabitStatsForRange(cmd.Context(), habitName, startOfMonth, endOfMonth)
-		if err != nil {
-			return err
-		}
-		sm := tui.StatsModel{
-			Ctx:                 cmd.Context(),
-			Habit:               rangedStreaks.Habit,
-			HeatMap:             rangedStreaks.Heatmap,
-			TotalStreaksInMonth: rangedStreaks.TotalStreakDaysInRange,
-			TotalMissesInMonth:  rangedStreaks.TotalMissesInRange,
-			Today:               time.Now(),
-			FirstDayOfSetMonth:  startOfMonth,
-			ExitError:           nil,
-			HasPreviousNbr:      util.AtLeastOneMonthOlder(habit.CreatedAt, startOfMonth),
-			HasNxtNbr:           util.AtLeastOneMonthOlder(startOfMonth, time.Now()),
-		}
-		err = tui.RenderStatsView(&sm)
+		err = tui.RenderStatsView(cmd.Context(), startOfMonth.Year(), int(startOfMonth.Month()), habit)
 		return err
 	},
 }

@@ -12,12 +12,16 @@ import (
 	"github.com/Atharva21/streakr/internal/util"
 )
 
-func LogHabitsForToday(appContext context.Context, habitNames []string) error {
+func LogHabitsForToday(appContext context.Context, habitNames []string) (bool, error) {
 	habitsToLogToday := make([]generated.Habit, 0)
+	allQuittingHabits := true
 	for _, habitName := range habitNames {
 		habit, err := GetHabitByName(appContext, habitName)
 		if err != nil {
-			return err
+			return allQuittingHabits, err
+		}
+		if habit.HabitType == store.HabitTypeImprove {
+			allQuittingHabits = false
 		}
 		habitsToLogToday = append(habitsToLogToday, habit)
 	}
@@ -27,7 +31,7 @@ func LogHabitsForToday(appContext context.Context, habitNames []string) error {
 		latestStreak, err := store.GetQueries().GetLatestStreakForHabit(appContext, habit.ID)
 		if err != nil {
 			if !errors.Is(err, sql.ErrNoRows) {
-				return err
+				return allQuittingHabits, err
 			}
 			// first time log. for improvement habits, streak_start and end should be the same day.
 			// for quitting habits, streak_start should be habit.Created_at + 1, and streak_end should be y'day
@@ -38,7 +42,7 @@ func LogHabitsForToday(appContext context.Context, habitNames []string) error {
 					StreakStart: today,
 					StreakEnd:   today,
 				})
-				return err
+				return allQuittingHabits, err
 			}
 			// logic for first log of quitting habits here
 			if util.IsSameDate(habit.CreatedAt, today) || util.IsSameDate(habit.CreatedAt, yesterday) {
@@ -47,14 +51,14 @@ func LogHabitsForToday(appContext context.Context, habitNames []string) error {
 					StreakStart: today,
 					StreakEnd:   today,
 				})
-				return err
+				return allQuittingHabits, err
 			}
 			_, err = store.GetQueries().AddStreak(appContext, generated.AddStreakParams{
 				HabitID:     habit.ID,
 				StreakStart: util.GetNextDayOf(habit.CreatedAt),
 				StreakEnd:   today,
 			})
-			return err
+			return allQuittingHabits, err
 		} else {
 			// logic for subsequent logs both improvement and quitting
 
@@ -71,7 +75,7 @@ func LogHabitsForToday(appContext context.Context, habitNames []string) error {
 						StreakEnd: today,
 					})
 					if err != nil {
-						return err
+						return allQuittingHabits, err
 					}
 				} else {
 					_, err = store.GetQueries().AddStreak(appContext, generated.AddStreakParams{
@@ -79,7 +83,7 @@ func LogHabitsForToday(appContext context.Context, habitNames []string) error {
 						StreakStart: today,
 						StreakEnd:   today,
 					})
-					return err
+					return allQuittingHabits, err
 				}
 			} else {
 				// for quitting habits, if latest.end == y'day, we do a today->today log
@@ -90,20 +94,20 @@ func LogHabitsForToday(appContext context.Context, habitNames []string) error {
 						StreakStart: today,
 						StreakEnd:   today,
 					})
-					return err
+					return allQuittingHabits, err
 				} else {
 					_, err = store.GetQueries().AddStreak(appContext, generated.AddStreakParams{
 						HabitID:     habit.ID,
 						StreakStart: util.GetNextDayOf(latestStreak.StreakEnd),
 						StreakEnd:   today,
 					})
-					return err
+					return allQuittingHabits, err
 				}
 			}
 
 		}
 	}
-	return nil
+	return allQuittingHabits, nil
 }
 
 func getHabitInfoForHabit(appContext context.Context, habit generated.Habit) (*types.HabitInfo, error) {

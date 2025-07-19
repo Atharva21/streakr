@@ -28,7 +28,29 @@ type StatsModel struct {
 }
 
 func (m StatsModel) Init() tea.Cmd {
-	return nil
+	return func() tea.Msg {
+		rangedStats, err := service.GetHabitStatsForRange(
+			m.Ctx,
+			m.Habit.Name,
+			m.FirstDayOfSetMonth,
+			m.FirstDayOfSetMonth.AddDate(0, 1, -1),
+		)
+		if err != nil {
+			return viewErrorMsg{err: err}
+		}
+		return StatsModel{
+			Ctx:                 m.Ctx,
+			FirstDayOfSetMonth:  m.FirstDayOfSetMonth,
+			Today:               m.Today,
+			HeatMap:             rangedStats.Heatmap,
+			Habit:               rangedStats.Habit,
+			ExitError:           nil,
+			HasPreviousNbr:      util.AtLeastOneMonthOlder(rangedStats.Habit.CreatedAt, m.FirstDayOfSetMonth),
+			HasNxtNbr:           util.AtLeastOneMonthOlder(m.FirstDayOfSetMonth, m.Today),
+			TotalStreaksInMonth: rangedStats.TotalStreakDaysInRange,
+			TotalMissesInMonth:  rangedStats.TotalMissesInRange,
+		}
+	}
 }
 
 type neighborMonth = int
@@ -83,7 +105,7 @@ func getNeighbourMonthStatsCmd(m StatsModel, nbrType neighborMonth) tea.Cmd {
 			HasPreviousNbr:      util.AtLeastOneMonthOlder(m.Habit.CreatedAt, firstDayOfNbrMonth),
 			HasNxtNbr:           util.AtLeastOneMonthOlder(firstDayOfNbrMonth, today),
 		}
-		return &sm
+		return sm
 	}
 }
 
@@ -93,7 +115,7 @@ func (m StatsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	case contextCancelledMsg:
 		return m, tea.Quit
-	case *StatsModel:
+	case StatsModel:
 		return msg, nil
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -185,7 +207,15 @@ func (m StatsModel) View() string {
 	return calView
 }
 
-func RenderStatsView(sm *StatsModel) error {
+func RenderStatsView(appContext context.Context, year, month int, habit generated.Habit) error {
+	date := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Local)
+	sm := &StatsModel{
+		Ctx:                appContext,
+		FirstDayOfSetMonth: date,
+		Today:              time.Now(),
+		ExitError:          nil,
+		Habit:              habit,
+	}
 	if sm.Ctx == nil {
 		return errors.New("Context cannot be empty for statsView")
 	}

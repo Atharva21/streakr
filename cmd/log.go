@@ -42,7 +42,7 @@ This updates your current streak.`,
 				return &se.StreakrError{TerminalMsg: "habit name cannot be > 20 chars"}
 			}
 		}
-		err := service.LogHabitsForToday(cmd.Context(), habitNames)
+		allQuittingHabits, err := service.LogHabitsForToday(cmd.Context(), habitNames)
 		if err != nil {
 			return err
 		}
@@ -51,8 +51,8 @@ This updates your current streak.`,
 			slog.Error(err.Error())
 			return nil
 		}
-		if loggedHabitCount == 0 || totalHabitCount == 0 {
-			// this will be for quitting habits.
+		if allQuittingHabits {
+			// this is when all the quitting habits are logged.
 			fmt.Fprintln(
 				os.Stdout,
 				"✔️  logged",

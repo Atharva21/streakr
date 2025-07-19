@@ -62,3 +62,25 @@ func CompareDate(t1, t2 time.Time) int {
 func FallInSameMonthYear(t1, t2 time.Time) bool {
 	return t1.Year() == t2.Year() && t1.Month() == t2.Month()
 }
+
+func AtLeastOneMonthOlder(t1, t2 time.Time) bool {
+	if CompareDate(t1, t2) <= 0 {
+		return false
+	}
+	if t1.Year() == t2.Year() && t1.Month() == t2.Month() {
+		return false
+	}
+	return true
+}
+
+// func AtLeastOneMonthOlder(t1, t2 time.Time) bool {
+// 	if t1.Year() > t2.Year() {
+// 		return false
+// 	}
+// 	if t1.Year() == t2.Year() {
+// 		if t1.Month() >= t2.Month() {
+// 			return false
+// 		}
+// 	}
+// 	return true
+// }

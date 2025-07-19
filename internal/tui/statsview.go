@@ -23,6 +23,8 @@ type StatsModel struct {
 	FirstDayOfSetMonth  time.Time // 1st of set month & year
 	Today               time.Time // range after which we cannot go
 	ExitError           error
+	HasPreviousNbr      bool
+	HasNxtNbr           bool
 }
 
 func (m StatsModel) Init() tea.Cmd {
@@ -78,6 +80,8 @@ func getNeighbourMonthStatsCmd(m StatsModel, nbrType neighborMonth) tea.Cmd {
 			FirstDayOfSetMonth:  firstDayOfNbrMonth,
 			Today:               m.Today,
 			ExitError:           nil,
+			HasPreviousNbr:      util.AtLeastOneMonthOlder(m.HabitInfo.Habit.CreatedAt, firstDayOfNbrMonth),
+			HasNxtNbr:           util.AtLeastOneMonthOlder(firstDayOfNbrMonth, today),
 		}
 		return &sm
 	}
@@ -105,8 +109,9 @@ func (m StatsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m StatsModel) View() string {
-	monthTitleColor := lipgloss.Color("#DDA0DD")
+	monthTitleColor := lipgloss.Color("#c97dc9ff")
 	weekDayHeaderColor := lipgloss.Color("#5d8addff")
+	todaysDateBGColor := lipgloss.Color("#474389ff")
 	weekdayStyle := lipgloss.
 		NewStyle().
 		Align(lipgloss.Left).
@@ -118,7 +123,14 @@ func (m StatsModel) View() string {
 	}
 	futureDatesColor := lipgloss.NewStyle().Foreground(lipgloss.Color("#444444"))
 	weekDaysHeader := "Mon Tue Wed Thu Fri Sat Sun"
-	monthTitle := fmt.Sprintf("%s %d", m.FirstDayOfSetMonth.Month(), m.FirstDayOfSetMonth.Year())
+	monthTitle := ""
+	if m.HasPreviousNbr {
+		monthTitle += "← "
+	}
+	monthTitle += fmt.Sprintf("%s %d", m.FirstDayOfSetMonth.Month(), m.FirstDayOfSetMonth.Year())
+	if m.HasNxtNbr {
+		monthTitle += " →"
+	}
 	calView := ""
 	calView += lipgloss.
 		NewStyle().
@@ -135,6 +147,7 @@ func (m StatsModel) View() string {
 	for ; dayOfTheWeek > 1; dayOfTheWeek-- {
 		calView += "    "
 	}
+	weeksPassed := 0
 	for i, val := range m.HeatMap {
 		date := m.FirstDayOfSetMonth.AddDate(0, 0, i)
 		if date.Day() < 10 {
@@ -147,7 +160,7 @@ func (m StatsModel) View() string {
 			style = missColor
 		}
 		if util.IsSameDate(date, time.Now()) {
-			style = style.Background(lipgloss.Color("#404040"))
+			style = style.Background(todaysDateBGColor)
 		}
 		if util.CompareDate(date, time.Now()) == -1 {
 			style = futureDatesColor
@@ -156,12 +169,19 @@ func (m StatsModel) View() string {
 		if i != len(m.HeatMap)-1 {
 			if date.Weekday() == time.Sunday {
 				calView += "\n"
+				weeksPassed++
 			} else {
 				calView += " "
 			}
 		}
 	}
-	calView += "\n"
+	for ; weeksPassed < 6; weeksPassed++ {
+		calView += "\n"
+	}
+
+	calView += fmt.Sprintf("Completed: %d\n", m.TotalStreaksInMonth)
+	calView += fmt.Sprintf("Missed: %d\n", m.TotalMissesInMonth)
+
 	return calView
 }
 

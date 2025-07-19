@@ -9,6 +9,7 @@ import (
 	"github.com/Atharva21/streakr/internal/service"
 	se "github.com/Atharva21/streakr/internal/streakrerror"
 	"github.com/Atharva21/streakr/internal/tui"
+	"github.com/Atharva21/streakr/internal/util"
 	"github.com/spf13/cobra"
 )
 
@@ -141,6 +142,8 @@ to quickly create a Cobra application.`,
 			Today:               time.Now(),
 			FirstDayOfSetMonth:  startOfMonth,
 			ExitError:           nil,
+			HasPreviousNbr:      util.AtLeastOneMonthOlder(habit.CreatedAt, startOfMonth),
+			HasNxtNbr:           util.AtLeastOneMonthOlder(startOfMonth, time.Now()),
 		}
 		err = tui.RenderStatsView(&sm)
 		return err

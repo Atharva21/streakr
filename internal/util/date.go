@@ -32,10 +32,33 @@ func CompareDate(t1, t2 time.Time) int {
 	if IsSameDate(t1, t2) {
 		return 0
 	}
+
 	y1, m1, d1 := t1.Date()
 	y2, m2, d2 := t2.Date()
-	if y1 > y2 || m1 > m2 || d1 > d2 {
+
+	// Compare years first
+	if y1 < y2 {
+		return 1
+	}
+	if y1 > y2 {
 		return -1
 	}
-	return 1
+
+	// Years are equal, compare months
+	if m1 < m2 {
+		return 1
+	}
+	if m1 > m2 {
+		return -1
+	}
+
+	// Years and months are equal, compare days
+	if d1 < d2 {
+		return 1
+	}
+	return -1 // d1 > d2
+}
+
+func FallInSameMonthYear(t1, t2 time.Time) bool {
+	return t1.Year() == t2.Year() && t1.Month() == t2.Month()
 }

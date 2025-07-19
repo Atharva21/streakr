@@ -8,6 +8,7 @@ import (
 
 	"github.com/Atharva21/streakr/internal/service"
 	se "github.com/Atharva21/streakr/internal/streakrerror"
+	"github.com/Atharva21/streakr/internal/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -131,15 +132,18 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			return err
 		}
-		// fmt.Println(rangedStreaks)
-		fmt.Println(rangedStreaks.TotalStreakDaysInRange)
-		// fmt.Println(habitStats)
-		// habitInfo, err := service.GetHabitInfo(cmd.Context(), habitName)
-		// if err != nil {
-		// 	return err
-		// }
-		// fmt.Printf("current streak: %d, max streak: %d\n", habitInfo.CurrentStreak, habitInfo.MaxStreak)
-		return nil
+		sm := tui.StatsModel{
+			Ctx:                 cmd.Context(),
+			HabitInfo:           rangedStreaks.HabitInfo,
+			HeatMap:             rangedStreaks.Heatmap,
+			TotalStreaksInMonth: rangedStreaks.TotalStreakDaysInRange,
+			TotalMissesInMonth:  rangedStreaks.TotalMissesInRange,
+			Today:               time.Now(),
+			FirstDayOfSetMonth:  startOfMonth,
+			ExitError:           nil,
+		}
+		err = tui.RenderStatsView(&sm)
+		return err
 	},
 }
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/Atharva21/streakr/internal/store"
@@ -188,8 +187,6 @@ func GetHabitStatsForRange(appContext context.Context, habitName string, startDa
 		StreakStart: endDate,
 		HabitID:     habit.ID,
 	})
-	fmt.Println(streaksLst)
-	fmt.Println("###")
 	if err != nil {
 		return nil, err
 	}

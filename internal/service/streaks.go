@@ -4,18 +4,19 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"log/slog"
+	"fmt"
 	"time"
 
 	"github.com/Atharva21/streakr/internal/store"
 	"github.com/Atharva21/streakr/internal/store/generated"
+	"github.com/Atharva21/streakr/internal/types"
 	"github.com/Atharva21/streakr/internal/util"
 )
 
 func LogHabitsForToday(appContext context.Context, habitNames []string) error {
 	habitsToLogToday := make([]generated.Habit, 0)
 	for _, habitName := range habitNames {
-		habit, err := getHabitByName(appContext, habitName)
+		habit, err := GetHabitByName(appContext, habitName)
 		if err != nil {
 			return err
 		}
@@ -106,30 +107,24 @@ func LogHabitsForToday(appContext context.Context, habitNames []string) error {
 	return nil
 }
 
-func GetStatsForHabitName(appContext context.Context, habitName string) (int64, int64, error) {
-	habit, err := getHabitByName(appContext, habitName)
-	if err != nil {
-		return 0, 0, err
-	}
+func getHabitInfoForHabit(appContext context.Context, habit generated.Habit) (*types.HabitInfo, error) {
 	c, err := getCurrentStreakForHabit(appContext, habit)
 	currentStreak := int64(c)
 	if err != nil {
-		return 0, 0, err
+		return nil, err
 	}
 	pastMaxStreak, err := getPastMaxStreakForHabit(appContext, habit)
 	if err != nil {
-		return 0, 0, err
+		return nil, err
 	}
 	if currentStreak >= pastMaxStreak {
 		pastMaxStreak = currentStreak
 	}
-	slog.Info(
-		"stats for habit",
-		slog.Int64("habitid", habit.ID),
-		slog.Int64("currentStreak", currentStreak),
-		slog.Int64("maxStreak", pastMaxStreak),
-	)
-	return currentStreak, pastMaxStreak, nil
+	return &types.HabitInfo{
+		Habit:         habit,
+		CurrentStreak: currentStreak,
+		MaxStreak:     pastMaxStreak,
+	}, nil
 }
 
 func getCurrentStreakForHabit(appContext context.Context, habit generated.Habit) (int, error) {
@@ -176,4 +171,54 @@ func getPastMaxStreakForHabit(appContext context.Context, habit generated.Habit)
 		return store.GetQueries().GetMaxStreakForHabit(appContext, habit.ID)
 	}
 	return store.GetQueries().GetMaxStreakQuittingHabit(appContext, habit.ID)
+}
+
+func GetHabitStatsForRange(appContext context.Context, habitName string, startDate time.Time, endDate time.Time) (*types.HabitStatsForRange, error) {
+	habit, err := GetHabitByName(appContext, habitName)
+	if err != nil {
+		return nil, err
+	}
+	habitInfo, err := getHabitInfoForHabit(appContext, habit)
+	if err != nil {
+		return nil, err
+	}
+
+	streaksLst, err := store.GetQueries().GetStreaksInRange(appContext, generated.GetStreaksInRangeParams{
+		StreakEnd:   startDate,
+		StreakStart: endDate,
+		HabitID:     habit.ID,
+	})
+	fmt.Println(streaksLst)
+	fmt.Println("###")
+	if err != nil {
+		return nil, err
+	}
+	heatmap := make([]bool, util.GetDayDiff(startDate, endDate)+1)
+	totalStreakDaysInRange := 0
+	for _, streak := range streaksLst {
+		for date := streak.StreakStart; util.CompareDate(date, streak.StreakEnd) >= 0; date = date.AddDate(0, 0, 1) {
+			if util.CompareDate(date, startDate) == 1 || util.CompareDate(date, endDate) == -1 {
+				// skip partial dates that may be out of range. (< startDate or > endDate)
+				continue
+			}
+			// now date is >= startdate && date <= endDate
+			idx := util.GetDayDiff(startDate, date)
+			if util.IsSameDate(date, streak.StreakEnd) && habit.HabitType == store.HabitTypeQuit {
+				// for quitting habits last day is not considered as a streak, but is just a marker
+				continue
+			}
+			heatmap[idx] = true
+			totalStreakDaysInRange++
+		}
+	}
+
+	hs := &types.HabitStatsForRange{
+		HabitInfo:              *habitInfo,
+		Heatmap:                heatmap,
+		TotalStreakDaysInRange: totalStreakDaysInRange,
+		TotalMissesInRange:     len(heatmap) - totalStreakDaysInRange,
+		RangeStart:             startDate,
+		RangeEnd:               endDate,
+	}
+	return hs, nil
 }

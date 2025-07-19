@@ -17,11 +17,3 @@ DELETE FROM habits WHERE id = ?;
 
 -- name: DeleteHabitByName :exec
 DELETE FROM habits WHERE name = ?;
-
--- name: UpdateHabit :exec
-UPDATE habits SET name = ?, description = ?, habit_type = ?, last_logged = ?
-WHERE id = ?;
-
--- name: UpdateHabitLastLogged :exec
-UPDATE habits SET last_logged = CURRENT_TIMESTAMP
-WHERE id = ?;

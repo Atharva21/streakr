@@ -48,7 +48,7 @@ func (q *Queries) DeleteHabitByName(ctx context.Context, name string) error {
 }
 
 const getHabit = `-- name: GetHabit :one
-SELECT id, name, description, habit_type, created_at, last_logged FROM habits WHERE id = ?
+SELECT id, name, description, habit_type, created_at FROM habits WHERE id = ?
 `
 
 func (q *Queries) GetHabit(ctx context.Context, id int64) (Habit, error) {
@@ -60,13 +60,12 @@ func (q *Queries) GetHabit(ctx context.Context, id int64) (Habit, error) {
 		&i.Description,
 		&i.HabitType,
 		&i.CreatedAt,
-		&i.LastLogged,
 	)
 	return i, err
 }
 
 const getHabitByName = `-- name: GetHabitByName :one
-SELECT id, name, description, habit_type, created_at, last_logged FROM habits WHERE name = ?
+SELECT id, name, description, habit_type, created_at FROM habits WHERE name = ?
 `
 
 func (q *Queries) GetHabitByName(ctx context.Context, name string) (Habit, error) {
@@ -78,13 +77,12 @@ func (q *Queries) GetHabitByName(ctx context.Context, name string) (Habit, error
 		&i.Description,
 		&i.HabitType,
 		&i.CreatedAt,
-		&i.LastLogged,
 	)
 	return i, err
 }
 
 const listHabits = `-- name: ListHabits :many
-SELECT id, name, description, habit_type, created_at, last_logged FROM habits
+SELECT id, name, description, habit_type, created_at FROM habits
 `
 
 func (q *Queries) ListHabits(ctx context.Context) ([]Habit, error) {
@@ -102,7 +100,6 @@ func (q *Queries) ListHabits(ctx context.Context) ([]Habit, error) {
 			&i.Description,
 			&i.HabitType,
 			&i.CreatedAt,
-			&i.LastLogged,
 		); err != nil {
 			return nil, err
 		}
@@ -115,38 +112,4 @@ func (q *Queries) ListHabits(ctx context.Context) ([]Habit, error) {
 		return nil, err
 	}
 	return items, nil
-}
-
-const updateHabit = `-- name: UpdateHabit :exec
-UPDATE habits SET name = ?, description = ?, habit_type = ?, last_logged = ?
-WHERE id = ?
-`
-
-type UpdateHabitParams struct {
-	Name        string
-	Description sql.NullString
-	HabitType   string
-	LastLogged  sql.NullTime
-	ID          int64
-}
-
-func (q *Queries) UpdateHabit(ctx context.Context, arg UpdateHabitParams) error {
-	_, err := q.db.ExecContext(ctx, updateHabit,
-		arg.Name,
-		arg.Description,
-		arg.HabitType,
-		arg.LastLogged,
-		arg.ID,
-	)
-	return err
-}
-
-const updateHabitLastLogged = `-- name: UpdateHabitLastLogged :exec
-UPDATE habits SET last_logged = CURRENT_TIMESTAMP
-WHERE id = ?
-`
-
-func (q *Queries) UpdateHabitLastLogged(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, updateHabitLastLogged, id)
-	return err
 }

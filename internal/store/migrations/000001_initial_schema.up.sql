@@ -3,8 +3,7 @@ CREATE TABLE habits (
   name TEXT NOT NULL UNIQUE CHECK (length(name) <= 20),
   description TEXT CHECK (description IS NULL OR length(description) <= 200),
   habit_type TEXT CHECK (habit_type IN ('improve', 'quit')) NOT NULL DEFAULT 'improve',
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-  last_logged DATETIME
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 CREATE INDEX idx_habits_name ON habits(name);
 

@@ -27,3 +27,15 @@ func GetPrevDayOf(t time.Time) time.Time {
 func GetDateWithDaysDiff(t time.Time, days int) time.Time {
 	return t.AddDate(0, 0, days)
 }
+
+func CompareDate(t1, t2 time.Time) int {
+	if IsSameDate(t1, t2) {
+		return 0
+	}
+	y1, m1, d1 := t1.Date()
+	y2, m2, d2 := t2.Date()
+	if y1 > y2 || m1 > m2 || d1 > d2 {
+		return -1
+	}
+	return 1
+}

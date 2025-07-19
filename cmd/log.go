@@ -17,7 +17,7 @@ Examples:
  streakr log run
  streakr log read,run,gym,youtube
  
-This updates your current streak and last_logged timestamp.`,
+This updates your current streak.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
 			return &se.StreakrError{TerminalMsg: "habit name cannot be empty"}

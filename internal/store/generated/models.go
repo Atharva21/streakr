@@ -15,7 +15,6 @@ type Habit struct {
 	Description sql.NullString
 	HabitType   string
 	CreatedAt   time.Time
-	LastLogged  sql.NullTime
 }
 
 type Streak struct {

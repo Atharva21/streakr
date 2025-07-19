@@ -42,3 +42,10 @@ WHERE id = ?;
 -- name: DeleteAllStreaksForHabit :exec
 DELETE FROM streaks
 WHERE habit_id = ?;
+
+-- name: GetStreaksInRange :many
+SELECT streak_start, streak_end
+FROM streaks
+WHERE streak_end >= ? AND streak_start <= ? AND
+habit_id = ?
+ORDER BY streak_start;

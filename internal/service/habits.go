@@ -13,7 +13,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-func getHabitByName(appContext context.Context, name string) (generated.Habit, error) {
+func GetHabitByName(appContext context.Context, name string) (generated.Habit, error) {
 	habit, err := store.GetQueries().GetHabitByName(appContext, name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -54,7 +54,7 @@ func AddHabit(appContext context.Context, name, description, habitType string) e
 func DeleteHabits(appContext context.Context, queries []string) error {
 	habitsIDsToDelete := make([]int64, 0)
 	for _, query := range queries {
-		habit, err := getHabitByName(appContext, query)
+		habit, err := GetHabitByName(appContext, query)
 		if err != nil {
 			return err
 		}

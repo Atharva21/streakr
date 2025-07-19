@@ -126,6 +126,48 @@ func (q *Queries) GetMaxStreakQuittingHabit(ctx context.Context, habitID int64) 
 	return max_streak_days, err
 }
 
+const getStreaksInRange = `-- name: GetStreaksInRange :many
+SELECT streak_start, streak_end
+FROM streaks
+WHERE streak_end >= ? AND streak_start <= ? AND
+habit_id = ?
+ORDER BY streak_start
+`
+
+type GetStreaksInRangeParams struct {
+	StreakEnd   time.Time
+	StreakStart time.Time
+	HabitID     int64
+}
+
+type GetStreaksInRangeRow struct {
+	StreakStart time.Time
+	StreakEnd   time.Time
+}
+
+func (q *Queries) GetStreaksInRange(ctx context.Context, arg GetStreaksInRangeParams) ([]GetStreaksInRangeRow, error) {
+	rows, err := q.db.QueryContext(ctx, getStreaksInRange, arg.StreakEnd, arg.StreakStart, arg.HabitID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetStreaksInRangeRow
+	for rows.Next() {
+		var i GetStreaksInRangeRow
+		if err := rows.Scan(&i.StreakStart, &i.StreakEnd); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateStreakEnd = `-- name: UpdateStreakEnd :exec
 UPDATE streaks
 SET streak_end = ?

@@ -30,3 +30,7 @@ JOIN streaks s ON h.id = s.habit_id
 WHERE h.habit_type = 'improve' 
  AND DATE(s.streak_end) = DATE('now');
 
+-- name: GetDaysSinceHabitCreation :one
+SELECT CAST(1 + julianday('now') - julianday(DATE(created_at)) AS INTEGER) as days_passed
+FROM habits
+WHERE id = ?;

@@ -49,6 +49,22 @@ func (q *Queries) DeleteStreakByID(ctx context.Context, id int64) error {
 	return err
 }
 
+const getLastCleanDay = `-- name: GetLastCleanDay :one
+SELECT DATE(streak_end, '-1 day') as last_clean_day
+FROM streaks
+WHERE habit_id = ? AND
+DATE(streak_end) <> DATE(streak_start)
+ORDER BY streak_end DESC
+LIMIT 1
+`
+
+func (q *Queries) GetLastCleanDay(ctx context.Context, habitID int64) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, getLastCleanDay, habitID)
+	var last_clean_day interface{}
+	err := row.Scan(&last_clean_day)
+	return last_clean_day, err
+}
+
 const getLatestStreak = `-- name: GetLatestStreak :one
 SELECT id, habit_id, streak_start, streak_end
 FROM streaks
@@ -166,6 +182,32 @@ func (q *Queries) GetStreaksInRange(ctx context.Context, arg GetStreaksInRangePa
 		return nil, err
 	}
 	return items, nil
+}
+
+const getTotalStreakDays = `-- name: GetTotalStreakDays :one
+SELECT CAST(COALESCE(SUM(julianday(streak_end) - julianday(streak_start) + 1), 0) AS INTEGER) as total_streak_days
+FROM streaks 
+WHERE habit_id = ?
+`
+
+func (q *Queries) GetTotalStreakDays(ctx context.Context, habitID int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getTotalStreakDays, habitID)
+	var total_streak_days int64
+	err := row.Scan(&total_streak_days)
+	return total_streak_days, err
+}
+
+const getTotalStreakDaysQuittingHabit = `-- name: GetTotalStreakDaysQuittingHabit :one
+SELECT CAST(COALESCE(SUM(julianday(streak_end) - julianday(streak_start)), 0) AS INTEGER) as total_streak_days
+FROM streaks 
+WHERE habit_id = ?
+`
+
+func (q *Queries) GetTotalStreakDaysQuittingHabit(ctx context.Context, habitID int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getTotalStreakDaysQuittingHabit, habitID)
+	var total_streak_days int64
+	err := row.Scan(&total_streak_days)
+	return total_streak_days, err
 }
 
 const updateStreakEnd = `-- name: UpdateStreakEnd :exec

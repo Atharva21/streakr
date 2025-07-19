@@ -7,11 +7,11 @@ import (
 )
 
 type HabitInfo struct {
-	Habit         generated.Habit
-	CurrentStreak int64
-	MaxStreak     int64
-	LastLogged    time.Time
-	LastMiss      time.Time
+	Habit              generated.Habit
+	CurrentStreak      int64
+	MaxStreak          int64
+	TotalPerformedDays int64
+	TotalMissedDays    int64
 }
 
 type HabitStatsForRange struct {

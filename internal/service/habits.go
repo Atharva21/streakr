@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log/slog"
 
 	"github.com/Atharva21/streakr/internal/store"
 	"github.com/Atharva21/streakr/internal/store/generated"
@@ -26,7 +25,7 @@ func GetHabitByName(appContext context.Context, name string) (generated.Habit, e
 
 func AddHabit(appContext context.Context, name, description, habitType string) error {
 
-	habitId, err := store.GetQueries().AddHabit(
+	_, err := store.GetQueries().AddHabit(
 		appContext,
 		generated.AddHabitParams{
 			Name: name,
@@ -45,8 +44,6 @@ func AddHabit(appContext context.Context, name, description, habitType string) e
 		}
 		return err
 	}
-
-	slog.Info("habit saved successfully", slog.Int64("habitId", habitId))
 
 	return nil
 }

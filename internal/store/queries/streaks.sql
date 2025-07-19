@@ -49,3 +49,21 @@ FROM streaks
 WHERE streak_end >= ? AND streak_start <= ? AND
 habit_id = ?
 ORDER BY streak_start;
+
+-- name: GetTotalStreakDays :one
+SELECT CAST(COALESCE(SUM(julianday(streak_end) - julianday(streak_start) + 1), 0) AS INTEGER) as total_streak_days
+FROM streaks 
+WHERE habit_id = ?;
+
+-- name: GetTotalStreakDaysQuittingHabit :one
+SELECT CAST(COALESCE(SUM(julianday(streak_end) - julianday(streak_start)), 0) AS INTEGER) as total_streak_days
+FROM streaks 
+WHERE habit_id = ?;
+
+-- name: GetLastCleanDay :one
+SELECT DATE(streak_end, '-1 day') as last_clean_day
+FROM streaks
+WHERE habit_id = ? AND
+DATE(streak_end) <> DATE(streak_start)
+ORDER BY streak_end DESC
+LIMIT 1;

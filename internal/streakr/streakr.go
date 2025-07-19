@@ -1,7 +1,6 @@
 package streakr
 
 import (
-	"log/slog"
 	"path/filepath"
 	"sync"
 
@@ -27,8 +26,6 @@ func bootsrapStreakr() {
 
 		// bootstrap store
 		store.BootstrapStore(filepath.Join(appConfig.DataDir, appConfig.StoreName))
-
-		slog.Info("bootstrap successful")
 	})
 }
 

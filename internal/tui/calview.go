@@ -131,9 +131,9 @@ func (m StatsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m StatsModel) View() string {
-	monthTitleColor := lipgloss.Color("#c97dc9ff")
+	monthTitleColor := lipgloss.Color("#5d8addff")
 	weekDayHeaderColor := lipgloss.Color("#5d8addff")
-	todaysDateBGColor := lipgloss.Color("#474389ff")
+	todaysDateBGColor := lipgloss.Color("#5d8addff")
 	weekdayStyle := lipgloss.
 		NewStyle().
 		Align(lipgloss.Left).

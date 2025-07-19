@@ -75,6 +75,19 @@ func (q *Queries) DeleteHabitByName(ctx context.Context, name string) error {
 	return err
 }
 
+const getDaysSinceHabitCreation = `-- name: GetDaysSinceHabitCreation :one
+SELECT CAST(1 + julianday('now') - julianday(DATE(created_at)) AS INTEGER) as days_passed
+FROM habits
+WHERE id = ?
+`
+
+func (q *Queries) GetDaysSinceHabitCreation(ctx context.Context, id int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getDaysSinceHabitCreation, id)
+	var days_passed int64
+	err := row.Scan(&days_passed)
+	return days_passed, err
+}
+
 const getHabit = `-- name: GetHabit :one
 SELECT id, name, description, habit_type, created_at FROM habits WHERE id = ?
 `

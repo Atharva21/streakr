@@ -123,10 +123,30 @@ func getHabitInfoForHabit(appContext context.Context, habit generated.Habit) (*t
 	if currentStreak >= pastMaxStreak {
 		pastMaxStreak = currentStreak
 	}
+	daysSinceHabitCreation, err := store.GetQueries().GetDaysSinceHabitCreation(appContext, habit.ID)
+	if err != nil {
+		return nil, err
+	}
+	var totalStreakDays int64
+	if habit.HabitType == store.HabitTypeImprove {
+		totalStreakDays, err = store.GetQueries().GetTotalStreakDays(appContext, habit.ID)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		totalStreakDays, err = store.GetQueries().GetTotalStreakDaysQuittingHabit(appContext, habit.ID)
+		if err != nil {
+			return nil, err
+		}
+		totalStreakDays += currentStreak
+	}
+	totalMissedDays := daysSinceHabitCreation - totalStreakDays
 	return &types.HabitInfo{
-		Habit:         habit,
-		CurrentStreak: currentStreak,
-		MaxStreak:     pastMaxStreak,
+		Habit:              habit,
+		CurrentStreak:      currentStreak,
+		MaxStreak:          pastMaxStreak,
+		TotalPerformedDays: totalStreakDays,
+		TotalMissedDays:    totalMissedDays,
 	}, nil
 }
 
@@ -217,4 +237,22 @@ func GetHabitStatsForRange(appContext context.Context, habitName string, startDa
 		RangeEnd:               endDate,
 	}
 	return hs, nil
+}
+
+func GetOverallStats(appContext context.Context) (*types.OverallStats, error) {
+	habits, err := ListHabits(appContext)
+	if err != nil {
+		return nil, err
+	}
+	habitInfos := make([]types.HabitInfo, 0)
+	for _, habit := range habits {
+		habitInfo, err := getHabitInfoForHabit(appContext, habit)
+		if err != nil {
+			return nil, err
+		}
+		habitInfos = append(habitInfos, *habitInfo)
+	}
+	return &types.OverallStats{
+		HabitInfos: habitInfos,
+	}, nil
 }

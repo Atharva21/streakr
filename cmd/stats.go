@@ -23,8 +23,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
-			// TODO overall stats logic here.
-			return nil
+			return tui.RenderOverallStats(cmd.Context())
 		}
 		if len(args) > 1 {
 			return &se.StreakrError{TerminalMsg: "habit name should not be more than 1 word"}

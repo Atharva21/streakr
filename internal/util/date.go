@@ -9,11 +9,11 @@ func IsSameDate(t1, t2 time.Time) bool {
 }
 
 func GetDayDiff(older, newer time.Time) int {
-	if IsSameDate(older, newer) {
-		return 0
-	}
-	days := int(newer.Truncate(24*time.Hour).Sub(older.Truncate(24*time.Hour)).Hours() / 24)
-	return days
+	// Convert to date-only by zeroing time components
+	olderDate := time.Date(older.Year(), older.Month(), older.Day(), 0, 0, 0, 0, time.UTC)
+	newerDate := time.Date(newer.Year(), newer.Month(), newer.Day(), 0, 0, 0, 0, time.UTC)
+
+	return int(newerDate.Sub(olderDate).Hours() / 24)
 }
 
 func GetNextDayOf(t time.Time) time.Time {

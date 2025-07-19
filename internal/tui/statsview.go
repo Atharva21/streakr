@@ -8,7 +8,7 @@ import (
 
 	"github.com/Atharva21/streakr/internal/service"
 	"github.com/Atharva21/streakr/internal/store"
-	"github.com/Atharva21/streakr/internal/types"
+	"github.com/Atharva21/streakr/internal/store/generated"
 	"github.com/Atharva21/streakr/internal/util"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -16,7 +16,7 @@ import (
 
 type StatsModel struct {
 	Ctx                 context.Context
-	HabitInfo           types.HabitInfo
+	Habit               generated.Habit
 	TotalStreaksInMonth int
 	TotalMissesInMonth  int
 	HeatMap             []bool
@@ -41,7 +41,7 @@ const (
 func getNeighbourMonthStatsCmd(m StatsModel, nbrType neighborMonth) tea.Cmd {
 	firstDayOfNbrMonth := m.FirstDayOfSetMonth.AddDate(0, int(nbrType), 0)
 	lastDayOfNbrMonth := firstDayOfNbrMonth.AddDate(0, 1, -1)
-	habitStart := m.HabitInfo.Habit.CreatedAt
+	habitStart := m.Habit.CreatedAt
 	today := m.Today
 	if firstDayOfNbrMonth.Year() < habitStart.Year() {
 		return nil
@@ -60,7 +60,7 @@ func getNeighbourMonthStatsCmd(m StatsModel, nbrType neighborMonth) tea.Cmd {
 		}
 	}
 	return func() tea.Msg {
-		rangedStats, err := service.GetHabitStatsForRange(m.Ctx, m.HabitInfo.Habit.Name, firstDayOfNbrMonth, lastDayOfNbrMonth)
+		rangedStats, err := service.GetHabitStatsForRange(m.Ctx, m.Habit.Name, firstDayOfNbrMonth, lastDayOfNbrMonth)
 		if err != nil {
 			return viewErrorMsg{
 				err: err,
@@ -73,14 +73,14 @@ func getNeighbourMonthStatsCmd(m StatsModel, nbrType neighborMonth) tea.Cmd {
 		}
 		sm := StatsModel{
 			Ctx:                 m.Ctx,
-			HabitInfo:           rangedStats.HabitInfo,
+			Habit:               rangedStats.Habit,
 			TotalStreaksInMonth: rangedStats.TotalStreakDaysInRange,
 			TotalMissesInMonth:  rangedStats.TotalMissesInRange,
 			HeatMap:             rangedStats.Heatmap,
 			FirstDayOfSetMonth:  firstDayOfNbrMonth,
 			Today:               m.Today,
 			ExitError:           nil,
-			HasPreviousNbr:      util.AtLeastOneMonthOlder(m.HabitInfo.Habit.CreatedAt, firstDayOfNbrMonth),
+			HasPreviousNbr:      util.AtLeastOneMonthOlder(m.Habit.CreatedAt, firstDayOfNbrMonth),
 			HasNxtNbr:           util.AtLeastOneMonthOlder(firstDayOfNbrMonth, today),
 		}
 		return &sm
@@ -118,7 +118,7 @@ func (m StatsModel) View() string {
 		Foreground(weekDayHeaderColor)
 	streakColor := lipgloss.NewStyle().Foreground(lipgloss.Color("#25a425ff"))
 	missColor := lipgloss.NewStyle().Foreground(lipgloss.Color("#c25252ff"))
-	if m.HabitInfo.Habit.HabitType == store.HabitTypeImprove {
+	if m.Habit.HabitType == store.HabitTypeImprove {
 		missColor = lipgloss.NewStyle()
 	}
 	futureDatesColor := lipgloss.NewStyle().Foreground(lipgloss.Color("#444444"))

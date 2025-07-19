@@ -135,7 +135,7 @@ to quickly create a Cobra application.`,
 		}
 		sm := tui.StatsModel{
 			Ctx:                 cmd.Context(),
-			HabitInfo:           rangedStreaks.HabitInfo,
+			Habit:               rangedStreaks.Habit,
 			HeatMap:             rangedStreaks.Heatmap,
 			TotalStreaksInMonth: rangedStreaks.TotalStreakDaysInRange,
 			TotalMissesInMonth:  rangedStreaks.TotalMissesInRange,

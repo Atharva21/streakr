@@ -13,7 +13,7 @@ type HabitInfo struct {
 }
 
 type HabitStatsForRange struct {
-	HabitInfo
+	Habit                  generated.Habit
 	Heatmap                []bool
 	TotalStreakDaysInRange int
 	TotalMissesInRange     int

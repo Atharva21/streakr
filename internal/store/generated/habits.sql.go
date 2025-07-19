@@ -29,6 +29,34 @@ func (q *Queries) AddHabit(ctx context.Context, arg AddHabitParams) (int64, erro
 	return id, err
 }
 
+const countImproveHabitsLoggedToday = `-- name: CountImproveHabitsLoggedToday :one
+SELECT COUNT(DISTINCT h.id) as logged_today_count
+FROM habits h
+JOIN streaks s ON h.id = s.habit_id
+WHERE h.habit_type = 'improve' 
+ AND DATE(s.streak_end) = DATE('now')
+`
+
+func (q *Queries) CountImproveHabitsLoggedToday(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countImproveHabitsLoggedToday)
+	var logged_today_count int64
+	err := row.Scan(&logged_today_count)
+	return logged_today_count, err
+}
+
+const countTotalImproveHabits = `-- name: CountTotalImproveHabits :one
+SELECT COUNT(*) as total_improve_habits
+FROM habits 
+WHERE habit_type = 'improve'
+`
+
+func (q *Queries) CountTotalImproveHabits(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countTotalImproveHabits)
+	var total_improve_habits int64
+	err := row.Scan(&total_improve_habits)
+	return total_improve_habits, err
+}
+
 const deleteHabit = `-- name: DeleteHabit :exec
 DELETE FROM habits WHERE id = ?
 `

@@ -72,3 +72,15 @@ func DeleteHabits(appContext context.Context, queries []string) error {
 func ListHabits(appContext context.Context) ([]generated.Habit, error) {
 	return store.GetQueries().ListHabits(appContext)
 }
+
+func GetTodaysLoggedHabitCount(appContext context.Context) (int64, int64, error) {
+	totalImprovementHabits, err := store.GetQueries().CountTotalImproveHabits(appContext)
+	if err != nil {
+		return 0, 0, err
+	}
+	completedImprovementHabits, err := store.GetQueries().CountImproveHabitsLoggedToday(appContext)
+	if err != nil {
+		return 0, 0, err
+	}
+	return completedImprovementHabits, totalImprovementHabits, nil
+}

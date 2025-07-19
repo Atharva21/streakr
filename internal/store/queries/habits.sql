@@ -17,3 +17,16 @@ DELETE FROM habits WHERE id = ?;
 
 -- name: DeleteHabitByName :exec
 DELETE FROM habits WHERE name = ?;
+
+-- name: CountTotalImproveHabits :one
+SELECT COUNT(*) as total_improve_habits
+FROM habits 
+WHERE habit_type = 'improve';
+
+-- name: CountImproveHabitsLoggedToday :one
+SELECT COUNT(DISTINCT h.id) as logged_today_count
+FROM habits h
+JOIN streaks s ON h.id = s.habit_id
+WHERE h.habit_type = 'improve' 
+ AND DATE(s.streak_end) = DATE('now');
+

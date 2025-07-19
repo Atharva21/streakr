@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+	"log/slog"
+	"os"
 	"strings"
 
 	"github.com/Atharva21/streakr/internal/service"
@@ -39,7 +42,30 @@ This updates your current streak.`,
 				return &se.StreakrError{TerminalMsg: "habit name cannot be > 20 chars"}
 			}
 		}
-		return service.LogHabitsForToday(cmd.Context(), habitNames)
+		err := service.LogHabitsForToday(cmd.Context(), habitNames)
+		if err != nil {
+			return err
+		}
+		loggedHabitCount, totalHabitCount, err := service.GetTodaysLoggedHabitCount(cmd.Context())
+		if err != nil {
+			slog.Error(err.Error())
+			return nil
+		}
+		if loggedHabitCount == 0 || totalHabitCount == 0 {
+			// this will be for quitting habits.
+			fmt.Fprintln(
+				os.Stdout,
+				"✔️  logged",
+			)
+			return nil
+		}
+		fmt.Fprintf(
+			os.Stdout,
+			"✔️  logged %d/%d today\n",
+			loggedHabitCount,
+			totalHabitCount,
+		)
+		return nil
 	},
 }
 

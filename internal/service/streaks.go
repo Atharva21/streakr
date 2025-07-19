@@ -177,11 +177,6 @@ func GetHabitStatsForRange(appContext context.Context, habitName string, startDa
 	if err != nil {
 		return nil, err
 	}
-	habitInfo, err := getHabitInfoForHabit(appContext, habit)
-	if err != nil {
-		return nil, err
-	}
-
 	streaksLst, err := store.GetQueries().GetStreaksInRange(appContext, generated.GetStreaksInRangeParams{
 		StreakEnd:   startDate,
 		StreakStart: endDate,
@@ -210,7 +205,7 @@ func GetHabitStatsForRange(appContext context.Context, habitName string, startDa
 	}
 
 	hs := &types.HabitStatsForRange{
-		HabitInfo:              *habitInfo,
+		Habit:                  habit,
 		Heatmap:                heatmap,
 		TotalStreakDaysInRange: totalStreakDaysInRange,
 		TotalMissesInRange:     len(heatmap) - totalStreakDaysInRange,

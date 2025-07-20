@@ -72,6 +72,7 @@ func (m OverallStats) Init() tea.Cmd {
 			Bold(false)
 		style.Selected = style.Selected.
 			Background(lipgloss.Color("#5d8addff")).
+			Foreground(lipgloss.Color("15")).
 			Bold(false)
 		t.SetStyles(style)
 		return statsLoadedMsg{
@@ -88,7 +89,7 @@ func (m OverallStats) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.table = msg.table
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "q", "ctrl+c":
+		case "q", "ctrl+c", "esc":
 			return m, tea.Quit
 		case "enter":
 			habitName := m.table.SelectedRow()[0]
@@ -115,7 +116,7 @@ func (m OverallStats) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m OverallStats) View() string {
 	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666"))
-	helpMsg := helpStyle.Render("↑↓ navigate • enter select • q quit")
+	helpMsg := helpStyle.Render("↑↓ navigate • enter select • q/esc quit")
 	return lipgloss.NewStyle().BorderStyle(lipgloss.NormalBorder()).Render(m.table.View()) + "\n" + helpMsg
 }
 

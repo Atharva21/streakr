@@ -121,8 +121,6 @@ func (m StatsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case viewErrorMsg:
 		return m, tea.Quit
-	case contextCancelledMsg:
-		return m, tea.Quit
 	case StatsModel:
 		return msg, nil
 	case tea.KeyMsg:
@@ -245,7 +243,7 @@ func RenderStatsView(appContext context.Context, year, month int, habit generate
 	statsViewProgram := tea.NewProgram(*sm)
 	go func() {
 		<-sm.Ctx.Done()
-		statsViewProgram.Send(contextCancelledMsg{})
+		statsViewProgram.Send(tea.Quit())
 	}()
 	_, err := statsViewProgram.Run()
 	return err

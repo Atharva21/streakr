@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"fmt"
-
-	"github.com/Atharva21/streakr/internal/service"
+	"github.com/Atharva21/streakr/internal/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -16,14 +14,7 @@ Example usage:
 streakr list
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		habits, err := service.ListHabits(cmd.Context())
-		if err != nil {
-			return err
-		}
-		for _, habit := range habits {
-			fmt.Printf("name: %v, desc: %v, type: %v\n", habit.Name, habit.Description.String, habit.HabitType)
-		}
-		return nil
+		return tui.RenderListView(cmd.Context())
 	},
 }
 

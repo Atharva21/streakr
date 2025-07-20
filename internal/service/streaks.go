@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"log/slog"
 	"time"
 
 	"github.com/Atharva21/streakr/internal/store"
@@ -131,7 +130,6 @@ func getHabitInfoForHabit(appContext context.Context, habit generated.Habit) (*t
 	var totalStreakDays int64
 	if habit.HabitType == store.HabitTypeImprove {
 		totalStreakDays, err = store.GetQueries().GetTotalStreakDays(appContext, habit.ID)
-		slog.Info("total streak days", "name", habit.Name, "days", totalStreakDays)
 		if err != nil {
 			return nil, err
 		}

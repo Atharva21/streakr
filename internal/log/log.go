@@ -14,8 +14,8 @@ func BootsrapLogger(absoluteLogfilePath string) {
 	bootstrapLoggerOnce.Do(func() {
 		lumber := &lumberjack.Logger{
 			Filename:   absoluteLogfilePath,
-			MaxSize:    10,   // MB
-			MaxBackups: 3,    // log.1, log.2, etc.
+			MaxSize:    2,    // MB
+			MaxBackups: 1,    // log.1, log.2, etc.
 			MaxAge:     28,   // days
 			Compress:   true, // compress old logs
 		}

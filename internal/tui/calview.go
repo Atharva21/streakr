@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/Atharva21/streakr/internal/service"
@@ -38,6 +39,7 @@ func (m StatsModel) Init() tea.Cmd {
 			m.FirstDayOfSetMonth.AddDate(0, 1, -1),
 		)
 		if err != nil {
+			slog.Error("error in getting ranged habit stats in calview", "err", err.Error())
 			return viewErrorMsg{err: err}
 		}
 		return StatsModel{
@@ -87,11 +89,13 @@ func getNeighbourMonthStatsCmd(m StatsModel, nbrType neighborMonth) tea.Cmd {
 	return func() tea.Msg {
 		rangedStats, err := service.GetHabitStatsForRange(m.Ctx, m.Habit.Name, firstDayOfNbrMonth, lastDayOfNbrMonth)
 		if err != nil {
+			slog.Error("error in getting ranged habit stats in calview", "err", err.Error())
 			return viewErrorMsg{
 				err: err,
 			}
 		}
 		if len(rangedStats.Heatmap) != lastDayOfNbrMonth.Day() {
+			slog.Error("heatmap len mismatch", "len of heatmap", len(rangedStats.Heatmap), "last day number", lastDayOfNbrMonth.Day())
 			return viewErrorMsg{
 				err: errors.New("Cannot render incomplete heatmap length mismatch"),
 			}

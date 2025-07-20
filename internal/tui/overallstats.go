@@ -36,7 +36,6 @@ func (m OverallStats) Init() tea.Cmd {
 		sort.Slice(s.HabitInfos, func(i, j int) bool {
 			return s.HabitInfos[i].CurrentStreak > s.HabitInfos[j].CurrentStreak
 		})
-		slog.Info("got overall stats", "len", len(s.HabitInfos))
 		cols := []table.Column{
 			{Title: "Habit", Width: 22},
 			{Title: "Current", Width: 9},
@@ -95,6 +94,7 @@ func (m OverallStats) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			habitName := m.table.SelectedRow()[0]
 			habit, err := service.GetHabitByName(m.Ctx, habitName)
 			if err != nil {
+				slog.Error("error in getting habit by name in statsview", "err", err.Error())
 				return m, tea.Quit
 			}
 			now := time.Now()
@@ -132,7 +132,6 @@ func RenderOverallStats(appContext context.Context) error {
 		slog.Error("app context closed, closing overall stats view")
 		p.Send(tea.Quit())
 	}()
-	slog.Info("running tea program for overall stats")
 	_, err := p.Run()
 	if err != nil {
 		slog.Error("error in overall stats view", "err", err.Error())

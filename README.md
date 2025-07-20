@@ -1,5 +1,7 @@
 # Streaker is habit tracking cli
 
+![streakrdemo.gif](./docs/images/streakrdemo.gif)
+
 ## Table of Contents
 - [Features](#features)
 - [Installation](#installation)

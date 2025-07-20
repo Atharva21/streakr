@@ -10,6 +10,7 @@ import (
 	"github.com/Atharva21/streakr/internal/store"
 	"github.com/Atharva21/streakr/internal/store/generated"
 	"github.com/Atharva21/streakr/internal/util"
+	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -25,6 +26,7 @@ type StatsModel struct {
 	ExitError           error
 	HasPreviousNbr      bool
 	HasNxtNbr           bool
+	ParentTable         *table.Model
 }
 
 func (m StatsModel) Init() tea.Cmd {
@@ -49,6 +51,7 @@ func (m StatsModel) Init() tea.Cmd {
 			HasNxtNbr:           util.AtLeastOneMonthOlder(m.FirstDayOfSetMonth, m.Today),
 			TotalStreaksInMonth: rangedStats.TotalStreakDaysInRange,
 			TotalMissesInMonth:  rangedStats.TotalMissesInRange,
+			ParentTable:         m.ParentTable,
 		}
 	}
 }
@@ -104,6 +107,7 @@ func getNeighbourMonthStatsCmd(m StatsModel, nbrType neighborMonth) tea.Cmd {
 			ExitError:           nil,
 			HasPreviousNbr:      util.AtLeastOneMonthOlder(m.Habit.CreatedAt, firstDayOfNbrMonth),
 			HasNxtNbr:           util.AtLeastOneMonthOlder(firstDayOfNbrMonth, today),
+			ParentTable:         m.ParentTable,
 		}
 		return sm
 	}
@@ -120,6 +124,14 @@ func (m StatsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q", "ctrl+c":
+			return m, tea.Quit
+		case "esc":
+			if m.ParentTable != nil {
+				return &OverallStats{
+					Ctx:   m.Ctx,
+					table: *m.ParentTable,
+				}, nil
+			}
 			return m, tea.Quit
 		case "left", "h":
 			return m, getNeighbourMonthStatsCmd(m, previousMonth)
@@ -204,6 +216,13 @@ func (m StatsModel) View() string {
 	calView += fmt.Sprintf("Completed: %d\n", m.TotalStreaksInMonth)
 	calView += fmt.Sprintf("Missed: %d\n", m.TotalMissesInMonth)
 
+	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666"))
+	helpMsg := "←→ navigate months • q quit"
+	if m.ParentTable != nil {
+		helpMsg = "←→ navigate months • esc back • q quit"
+	}
+
+	calView += "\n" + helpStyle.Render(helpMsg)
 	return calView
 }
 

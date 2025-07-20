@@ -22,16 +22,16 @@ ORDER BY streak_end DESC
 LIMIT 1;
 
 -- name: GetMaxStreak :one
-SELECT CAST(COALESCE(MAX(julianday(streak_end) - julianday(streak_start) + 1), 0) AS INTEGER) as max_streak_days
+SELECT CAST(COALESCE(MAX(julianday(DATE(streak_end)) - julianday(DATE(streak_start)) + 1), 0) AS INTEGER) as max_streak_days
 FROM streaks;
 
 -- name: GetMaxStreakQuittingHabit :one
-SELECT CAST(COALESCE(MAX(julianday(streak_end) - julianday(streak_start)), 0) AS INTEGER) as max_streak_days
+SELECT CAST(COALESCE(MAX(julianday(DATE(streak_end)) - julianday(DATE(streak_start))), 0) AS INTEGER) as max_streak_days
 FROM streaks
 WHERE habit_id = ?;
 
 -- name: GetMaxStreakForHabit :one
-SELECT CAST(COALESCE(MAX(julianday(streak_end) - julianday(streak_start) + 1), 0) AS INTEGER) as max_streak_days
+SELECT CAST(COALESCE(MAX(julianday(DATE(streak_end)) - julianday(DATE(streak_start)) + 1), 0) AS INTEGER) as max_streak_days
 FROM streaks
 WHERE habit_id = ?;
 
@@ -51,19 +51,11 @@ habit_id = ?
 ORDER BY streak_start;
 
 -- name: GetTotalStreakDays :one
-SELECT CAST(COALESCE(SUM(julianday(streak_end) - julianday(streak_start) + 1), 0) AS INTEGER) as total_streak_days
+SELECT CAST(COALESCE(SUM(julianday(DATE(streak_end)) - julianday(DATE(streak_start)) + 1), 0) AS INTEGER) as total_streak_days
 FROM streaks 
 WHERE habit_id = ?;
 
 -- name: GetTotalStreakDaysQuittingHabit :one
-SELECT CAST(COALESCE(SUM(julianday(streak_end) - julianday(streak_start)), 0) AS INTEGER) as total_streak_days
+SELECT CAST(COALESCE(SUM(julianday(DATE(streak_end)) - julianday(DATE(streak_start))), 0) AS INTEGER) as total_streak_days
 FROM streaks 
 WHERE habit_id = ?;
-
--- name: GetLastCleanDay :one
-SELECT DATE(streak_end, '-1 day') as last_clean_day
-FROM streaks
-WHERE habit_id = ? AND
-DATE(streak_end) <> DATE(streak_start)
-ORDER BY streak_end DESC
-LIMIT 1;

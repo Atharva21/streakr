@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"sort"
+	"time"
 
 	"github.com/Atharva21/streakr/internal/service"
 	"github.com/charmbracelet/bubbles/table"
@@ -14,12 +15,12 @@ import (
 )
 
 type statsLoadedMsg struct {
-	t table.Model
+	table table.Model
 }
 
 type OverallStats struct {
-	Ctx context.Context
-	t   table.Model
+	Ctx   context.Context
+	table table.Model
 }
 
 func (m OverallStats) Init() tea.Cmd {
@@ -75,7 +76,7 @@ func (m OverallStats) Init() tea.Cmd {
 			Bold(false)
 		t.SetStyles(style)
 		return statsLoadedMsg{
-			t: t,
+			table: t,
 		}
 	}
 }
@@ -85,20 +86,37 @@ func (m OverallStats) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case viewErrorMsg:
 		return m, tea.Quit
 	case statsLoadedMsg:
-		m.t = msg.t
+		m.table = msg.table
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
+		case "enter":
+			habitName := m.table.SelectedRow()[0]
+			habit, err := service.GetHabitByName(m.Ctx, habitName)
+			if err != nil {
+				return m, tea.Quit
+			}
+			now := time.Now()
+			sm := &StatsModel{
+				Ctx:                m.Ctx,
+				FirstDayOfSetMonth: time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.Local),
+				Today:              now,
+				Habit:              habit,
+				ParentTable:        &m.table,
+			}
+			return sm, sm.Init()
 		}
 	}
 	var cmd tea.Cmd
-	m.t, cmd = m.t.Update(msg)
+	m.table, cmd = m.table.Update(msg)
 	return m, cmd
 }
 
 func (m OverallStats) View() string {
-	return lipgloss.NewStyle().BorderStyle(lipgloss.NormalBorder()).Render(m.t.View()) + "\n"
+	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666"))
+	helpMsg := helpStyle.Render("↑↓ navigate • enter select • q quit")
+	return lipgloss.NewStyle().BorderStyle(lipgloss.NormalBorder()).Render(m.table.View()) + "\n" + helpMsg
 }
 
 func RenderOverallStats(appContext context.Context) error {

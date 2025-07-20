@@ -240,7 +240,7 @@ func RenderStatsView(appContext context.Context, year, month int, habit generate
 	if sm.Ctx == nil {
 		return errors.New("Context cannot be empty for statsView")
 	}
-	statsViewProgram := tea.NewProgram(*sm)
+	statsViewProgram := tea.NewProgram(*sm, tea.WithAltScreen())
 	go func() {
 		<-sm.Ctx.Done()
 		statsViewProgram.Send(tea.Quit())

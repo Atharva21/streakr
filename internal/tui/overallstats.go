@@ -127,7 +127,7 @@ func RenderOverallStats(appContext context.Context) error {
 	overallStats := OverallStats{
 		Ctx: appContext,
 	}
-	p := tea.NewProgram(overallStats)
+	p := tea.NewProgram(overallStats, tea.WithAltScreen())
 	go func() {
 		<-appContext.Done()
 		slog.Error("app context closed, closing overall stats view")

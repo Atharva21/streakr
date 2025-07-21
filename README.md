@@ -22,8 +22,12 @@ For design please visit: [design.md](./docs/design.md)
 
 ## Installation
 
-<!-- ### Download Binary -->
-<!-- Download the latest release from [GitHub Releases](https://github.com/yourusername/streakr/releases) -->
+### Download Binary
+Download the latest release from [GitHub Releases](https://github.com/Atharva21/streakr/releases/download/v0.1.0/streakr)
+
+```bash
+curl -L https://github.com/Atharva21/streakr/releases/download/v0.1.0/streakr -o streakr && chmod +x streakr && sudo mv streakr /usr/local/bin/
+```
 
 ### Build from Source
 ```bash

@@ -51,7 +51,10 @@ streakr log <habit_name>
 # View all habits
 streakr list
 
-# View statistics
+# View overall stats
+streakr stats
+
+# View habit-wise statistics
 streakr stats <habit_name>
 
 # Delete a habit

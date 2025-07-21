@@ -99,6 +99,8 @@ make install
 install cobra-cli via 
 ```bash
 go install github.com/spf13/cobra-cli@latest
+go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+
 ```
 this lets you add a command or subcommand via 
 ```bash

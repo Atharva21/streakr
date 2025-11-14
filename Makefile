@@ -28,7 +28,20 @@ clean:
 	@ rm -rf ./internal/store/generated
 
 test:
-	go test ./...
+	@ echo "Running tests..."
+	@ go test ./... -v
+
+test-coverage:
+	@ echo "Running tests with coverage..."
+	@ go test ./... -cover
+
+test-verbose:
+	@ echo "Running tests with verbose output..."
+	@ go test ./... -v
+
+test-service:
+	@ echo "Running service layer tests..."
+	@ go test ./internal/service/... -v
 
 tidy:
 	@ go mod tidy
@@ -50,7 +63,10 @@ help:
 	@ echo "  make build             - Build the binary"
 	@ echo "  make run               - Build and run the binary"
 	@ echo "  make clean             - Clean build artifacts"
-	@ echo "  make test              - Run tests"
+	@ echo "  make test              - Run all tests with verbose output"
+	@ echo "  make test-coverage     - Run tests with coverage report"
+	@ echo "  make test-verbose      - Run tests with verbose output (alias for test)"
+	@ echo "  make test-service      - Run service layer tests only"
 	@ echo "  make tidy              - Tidy go.mod and go.sum files"
 	@ echo "  make fmt               - Format the code"
 	@ echo "  make install           - Install binary on same machine"
@@ -58,4 +74,4 @@ help:
 	@ echo "  make clean-install     - Clean any temporary files and do a fresh install"
 	@ echo "  make help              - Show this help message"
 
-.PHONY: bootstrap build run clean test tidy fmt install generate clean-install help
+.PHONY: bootstrap build run clean test test-coverage test-verbose test-service tidy fmt install generate clean-install help

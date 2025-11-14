@@ -32,9 +32,9 @@ For design please visit: [design.md](./docs/design.md)
 
 ## Installation
 
-### Download Binary
+### Download Binary (Linux)
 
-Download the latest release for your platform:
+Pre-built binaries are available for Linux:
 
 #### Linux (AMD64)
 ```bash
@@ -46,18 +46,7 @@ curl -L https://github.com/Atharva21/streakr/releases/download/v0.2.0/streakr-li
 curl -L https://github.com/Atharva21/streakr/releases/download/v0.2.0/streakr-linux-arm64 -o streakr && chmod +x streakr && sudo mv streakr /usr/local/bin/
 ```
 
-#### macOS (Apple Silicon)
-```bash
-curl -L https://github.com/Atharva21/streakr/releases/download/v0.2.0/streakr-darwin-arm64 -o streakr && chmod +x streakr && sudo mv streakr /usr/local/bin/
-```
-
-#### macOS (Intel)
-```bash
-curl -L https://github.com/Atharva21/streakr/releases/download/v0.2.0/streakr-darwin-amd64 -o streakr && chmod +x streakr && sudo mv streakr /usr/local/bin/
-```
-
-#### Windows (AMD64)
-Download from [GitHub Releases](https://github.com/Atharva21/streakr/releases/download/v0.2.0/streakr-windows-amd64.exe) and add to your PATH.
+> **Note for macOS/Windows users**: Due to SQLite CGO requirements, pre-built binaries for macOS and Windows are not provided. Please build from source (see below).
 
 ### Build from Source
 ```bash

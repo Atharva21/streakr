@@ -49,7 +49,7 @@ tidy:
 	@ go mod tidy
 
 fmt:
-	@ go fmt ./...
+	@ go fmt ./... > /dev/null
 
 install: build
 	@ go install $(LDFLAGS) .

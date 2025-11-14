@@ -382,7 +382,7 @@ func TestGetHabitStatsForRange_ImproveHabit(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, 8, stats.TotalStreakDaysInRange) // 5 days + 3 days
-	assert.Len(t, stats.Heatmap, 30)                  // November has 30 days
+	assert.Len(t, stats.Heatmap, 30)                 // November has 30 days
 
 	// Verify heatmap has correct days marked
 	assert.True(t, stats.Heatmap[0])  // Nov 1

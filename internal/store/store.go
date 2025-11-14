@@ -83,3 +83,15 @@ func GetQueries() *generated.Queries {
 	}
 	return queries
 }
+
+// SetQueriesForTesting allows tests to inject a custom queries instance
+// This should ONLY be used in test code
+func SetQueriesForTesting(testQueries *generated.Queries) {
+	queries = testQueries
+}
+
+// SetDBForTesting allows tests to inject a custom database instance
+// This should ONLY be used in test code
+func SetDBForTesting(testDB *sql.DB) {
+	db = testDB
+}

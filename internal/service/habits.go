@@ -24,6 +24,10 @@ func GetHabitByName(appContext context.Context, name string) (generated.Habit, e
 }
 
 func AddHabit(appContext context.Context, name, description, habitType string) error {
+	// Validate name is not empty
+	if name == "" {
+		return &se.StreakrError{TerminalMsg: "Habit name cannot be empty"}
+	}
 
 	_, err := store.GetQueries().AddHabit(
 		appContext,

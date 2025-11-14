@@ -42,7 +42,10 @@ func LogHabitsForToday(appContext context.Context, habitNames []string) (bool, e
 					StreakStart: today,
 					StreakEnd:   today,
 				})
-				return allQuittingHabits, err
+				if err != nil {
+					return allQuittingHabits, err
+				}
+				continue
 			}
 			// logic for first log of quitting habits here
 			if util.IsSameDate(habit.CreatedAt, today) || util.IsSameDate(habit.CreatedAt, yesterday) {
@@ -51,14 +54,20 @@ func LogHabitsForToday(appContext context.Context, habitNames []string) (bool, e
 					StreakStart: today,
 					StreakEnd:   today,
 				})
-				return allQuittingHabits, err
+				if err != nil {
+					return allQuittingHabits, err
+				}
+				continue
 			}
 			_, err = store.GetQueries().AddStreak(appContext, generated.AddStreakParams{
 				HabitID:     habit.ID,
 				StreakStart: util.GetNextDayOf(habit.CreatedAt),
 				StreakEnd:   today,
 			})
-			return allQuittingHabits, err
+			if err != nil {
+				return allQuittingHabits, err
+			}
+			continue
 		} else {
 			// logic for subsequent logs both improvement and quitting
 
@@ -83,7 +92,9 @@ func LogHabitsForToday(appContext context.Context, habitNames []string) (bool, e
 						StreakStart: today,
 						StreakEnd:   today,
 					})
-					return allQuittingHabits, err
+					if err != nil {
+						return allQuittingHabits, err
+					}
 				}
 			} else {
 				// for quitting habits, if latest.end == y'day, we do a today->today log
@@ -94,14 +105,18 @@ func LogHabitsForToday(appContext context.Context, habitNames []string) (bool, e
 						StreakStart: today,
 						StreakEnd:   today,
 					})
-					return allQuittingHabits, err
+					if err != nil {
+						return allQuittingHabits, err
+					}
 				} else {
 					_, err = store.GetQueries().AddStreak(appContext, generated.AddStreakParams{
 						HabitID:     habit.ID,
 						StreakStart: util.GetNextDayOf(latestStreak.StreakEnd),
 						StreakEnd:   today,
 					})
-					return allQuittingHabits, err
+					if err != nil {
+						return allQuittingHabits, err
+					}
 				}
 			}
 
@@ -270,9 +285,15 @@ func GetHabitStatsForRange(appContext context.Context, habitName string, startDa
 	yesterday := util.GetPrevDayOf(today)
 
 	effectiveStartDate := startDate
-	if util.CompareDate(habit.CreatedAt, startDate) == -1 {
-		// habit was created after the start of the range
-		effectiveStartDate = habit.CreatedAt
+	// For quit habits, the creation day doesn't count - start from day after
+	habitStartDate := habit.CreatedAt
+	if habit.HabitType == store.HabitTypeQuit {
+		habitStartDate = util.GetNextDayOf(habit.CreatedAt)
+	}
+
+	if util.CompareDate(habitStartDate, startDate) == -1 {
+		// habit tracking started after the start of the range
+		effectiveStartDate = habitStartDate
 	}
 
 	effectiveEndDate := endDate

@@ -6,7 +6,13 @@
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
+  - [Basic Commands](#basic-commands)
+  - [Understanding Habit Types](#understanding-habit-types)
+  - [Calendar View Navigation](#calendar-view-navigation)
+  - [Data Storage](#data-storage)
+- [Examples](#examples)
 - [Contributing](#contributing)
+- [Requirements](#requirements)
 
  Track your habit streaks from the command line.
 Build good habits. Break bad ones. Stay consistent.
@@ -15,10 +21,14 @@ For design please visit: [design.md](./docs/design.md)
 
 ## Features
 
-- Track improvement habits (daily runs, reading, etc.)
-- Monitor quit habits (smoking, junk food, etc.)
-- View current and max streaks across all habits
-- Simple CLI interface for quick daily logging
+- **Two Habit Types**:
+  - **Improve habits**: Track positive actions you want to do more (running, reading, etc.)
+  - **Quit habits**: Track things you want to avoid (smoking, junk food, etc.)
+- **Streak Tracking**: View current and max streaks for each habit
+- **Calendar View**: Interactive monthly calendar showing your habit history
+- **Statistics**: Detailed stats including completed days, missed days, and success rates
+- **Simple CLI**: Quick daily logging with minimal commands
+- **Local Storage**: All data stored locally in SQLite database (`~/.config/streakr/`)
 
 ## Installation
 
@@ -86,6 +96,33 @@ streakr stats           # All habits overview
 streakr stats running   # Specific habit details
 ```
 
+### Understanding Habit Types
+
+**Improve Habits** (default):
+- Log each day you complete the habit
+- Streaks are built by logging consecutive days
+- Example: Log "running" each day you go for a run
+
+**Quit Habits**:
+- Log each day you slip up (do the thing you're trying to quit)
+- Streaks represent consecutive days WITHOUT the habit
+- Example: Log "smoking" only on days you smoke; gaps represent clean days
+
+### Calendar View Navigation
+
+When viewing stats for a specific habit (`streakr stats <habit_name>`):
+- Use `←` / `→` arrow keys or `h` / `l` to navigate between months
+- Press `q` to quit
+- Press `esc` to return to the list view (if navigated from list)
+
+### Data Storage
+
+All your data is stored locally on your machine:
+- Database: `~/.config/streakr/streakr.db`
+- Logs: `~/.config/streakr/streakr.log`
+
+To backup your data, simply copy the `~/.config/streakr/` directory.
+
 ## Contributing
 
 Contributions are welcome! Here's how to get started:
@@ -112,7 +149,70 @@ The `make bootstrap` command installs:
 - `sqlc` - For generating type-safe Go code from SQL
 - `migrate` - For database migrations
 
-**Adding new commands:**
+**Common development commands:**
 ```bash
-cobra-cli add <command_name>
+make help          # Show all available commands
+make build         # Build the binary
+make test          # Run tests
+make clean         # Clean build artifacts
+cobra-cli add foo  # Add a new command
 ```
+
+**Project Structure:**
+- `cmd/` - CLI commands (using Cobra)
+- `internal/service/` - Business logic for habits and streaks
+- `internal/store/` - Database layer (SQLite with sqlc)
+- `internal/tui/` - Terminal UI components (using Bubble Tea)
+- `internal/store/queries/` - SQL queries (used by sqlc to generate Go code)
+- `internal/store/migrations/` - Database migrations
+
+For more details on the architecture, see [CLAUDE.md](CLAUDE.md)
+
+## Examples
+
+### Tracking a Morning Run Habit
+```bash
+# Add the habit
+streakr add running -d "5k morning run"
+
+# Log it each day you run
+streakr log running
+
+# Check your progress
+streakr stats running
+```
+
+### Quitting Coffee
+```bash
+# Add as a quit habit
+streakr add coffee --type quit -d "No caffeine after 2pm"
+
+# Only log when you slip up (have coffee after 2pm)
+streakr log coffee
+
+# View your clean streak
+streakr stats coffee
+```
+
+### Multiple Habits
+```bash
+# Add several habits
+streakr add meditation -d "10 min daily"
+streakr add journal -d "Evening reflection"
+streakr add snacking -t quit -d "No snacks after dinner"
+
+# View all at once
+streakr list
+
+# Check overall progress
+streakr stats
+```
+
+## Requirements
+
+- Go 1.24 or higher (for building from source)
+- Linux/Unix-based system (tested on Linux; WSL2 supported)
+
+## License
+
+MIT License - see LICENSE file for details

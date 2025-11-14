@@ -47,4 +47,6 @@ func init() {
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	rootCmd.InitDefaultHelpFlag()
 	addCmd.Flags().Lookup("help").Shorthand = ""
+	rootCmd.Version = Version
+	rootCmd.SetVersionTemplate("streakr v{{.Version}}\n")
 }

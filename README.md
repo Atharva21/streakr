@@ -33,11 +33,31 @@ For design please visit: [design.md](./docs/design.md)
 ## Installation
 
 ### Download Binary
-Download the latest release from [GitHub Releases](https://github.com/Atharva21/streakr/releases/download/v0.1.0/streakr)
 
+Download the latest release for your platform:
+
+#### Linux (AMD64)
 ```bash
-curl -L https://github.com/Atharva21/streakr/releases/download/v0.1.0/streakr -o streakr && chmod +x streakr && sudo mv streakr /usr/local/bin/
+curl -L https://github.com/Atharva21/streakr/releases/download/v0.2.0/streakr-linux-amd64 -o streakr && chmod +x streakr && sudo mv streakr /usr/local/bin/
 ```
+
+#### Linux (ARM64)
+```bash
+curl -L https://github.com/Atharva21/streakr/releases/download/v0.2.0/streakr-linux-arm64 -o streakr && chmod +x streakr && sudo mv streakr /usr/local/bin/
+```
+
+#### macOS (Apple Silicon)
+```bash
+curl -L https://github.com/Atharva21/streakr/releases/download/v0.2.0/streakr-darwin-arm64 -o streakr && chmod +x streakr && sudo mv streakr /usr/local/bin/
+```
+
+#### macOS (Intel)
+```bash
+curl -L https://github.com/Atharva21/streakr/releases/download/v0.2.0/streakr-darwin-amd64 -o streakr && chmod +x streakr && sudo mv streakr /usr/local/bin/
+```
+
+#### Windows (AMD64)
+Download from [GitHub Releases](https://github.com/Atharva21/streakr/releases/download/v0.2.0/streakr-windows-amd64.exe) and add to your PATH.
 
 ### Build from Source
 ```bash

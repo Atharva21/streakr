@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build binaries
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          LDFLAGS="-X github.com/Atharva21/streakr/cmd.Version=$VERSION"
+
+          # Linux AMD64
+          GOOS=linux GOARCH=amd64 go build -ldflags "$LDFLAGS" -o streakr-linux-amd64 .
+
+          # Linux ARM64
+          GOOS=linux GOARCH=arm64 go build -ldflags "$LDFLAGS" -o streakr-linux-arm64 .
+
+          # macOS AMD64
+          GOOS=darwin GOARCH=amd64 go build -ldflags "$LDFLAGS" -o streakr-darwin-amd64 .
+
+          # macOS ARM64 (Apple Silicon)
+          GOOS=darwin GOARCH=arm64 go build -ldflags "$LDFLAGS" -o streakr-darwin-arm64 .
+
+          # Windows AMD64
+          GOOS=windows GOARCH=amd64 go build -ldflags "$LDFLAGS" -o streakr-windows-amd64.exe .
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            streakr-linux-amd64
+            streakr-linux-arm64
+            streakr-darwin-amd64
+            streakr-darwin-arm64
+            streakr-windows-amd64.exe
+          body: |
+            ## What's Changed
+
+            See the full changelog at: https://github.com/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.ref_name }}
+
+            ## Installation
+
+            ### Linux (AMD64)
+            ```bash
+            curl -L https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/streakr-linux-amd64 -o streakr && chmod +x streakr && sudo mv streakr /usr/local/bin/
+            ```
+
+            ### macOS (Apple Silicon)
+            ```bash
+            curl -L https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/streakr-darwin-arm64 -o streakr && chmod +x streakr && sudo mv streakr /usr/local/bin/
+            ```
+
+            ### macOS (Intel)
+            ```bash
+            curl -L https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/streakr-darwin-amd64 -o streakr && chmod +x streakr && sudo mv streakr /usr/local/bin/
+            ```
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

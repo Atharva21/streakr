@@ -1,4 +1,6 @@
 BINARY_NAME=streakr
+VERSION?=dev
+LDFLAGS=-ldflags "-X github.com/Atharva21/streakr/cmd.Version=$(VERSION)"
 .DEFAULT_GOAL := install
 
 bootstrap:
@@ -16,7 +18,7 @@ bootstrap:
 	@ echo "  export PATH=\$$PATH:\$$HOME/go/bin"
 
 build: generate tidy fmt
-	@ GOOS=linux GOARCH=amd64 go build -o bin/linux/${BINARY_NAME}
+	@ GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o bin/linux/${BINARY_NAME}
 
 run: build
 	@ ./bin/${BINARY_NAME}
@@ -50,7 +52,7 @@ fmt:
 	@ go fmt ./...
 
 install: build
-	@ go install .
+	@ go install $(LDFLAGS) .
 
 generate:
 	@ sqlc generate

@@ -10,6 +10,13 @@ Streakr is a CLI habit tracker built in Go that helps users track daily habits a
 
 ## Development Commands
 
+### First Time Setup
+```bash
+make bootstrap      # Install development tools (cobra-cli, sqlc, migrate)
+```
+Run this on a new machine after cloning. Installs all required CLI tools to `$GOPATH/bin`.
+Make sure `$HOME/go/bin` is in your PATH: `export PATH=$PATH:$HOME/go/bin`
+
 ### Building and Running
 ```bash
 make build          # Builds binary for Linux to bin/linux/streakr
@@ -35,7 +42,6 @@ make tidy           # Tidy go.mod and go.sum
 ```bash
 cobra-cli add <command_name>  # Generates new command file in cmd/
 ```
-Requires `github.com/spf13/cobra-cli@latest` to be installed.
 
 ## Architecture
 

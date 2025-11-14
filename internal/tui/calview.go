@@ -198,7 +198,12 @@ func (m StatsModel) View() string {
 		if util.IsSameDate(date, time.Now()) {
 			style = style.Background(todaysDateBGColor)
 		}
+		// Show future dates in gray
 		if util.CompareDate(date, time.Now()) == -1 {
+			style = futureDatesColor
+		}
+		// Show dates before habit creation in gray (they don't apply to this habit)
+		if util.CompareDate(date, m.Habit.CreatedAt) == 1 {
 			style = futureDatesColor
 		}
 		calView += style.Render(fmt.Sprintf("%d", date.Day()))

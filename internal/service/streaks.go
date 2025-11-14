@@ -165,12 +165,15 @@ func getCurrentStreakForHabit(appContext context.Context, habit generated.Habit)
 				return 0, nil
 			}
 		}
-		// for quitting habits,
+		// for quitting habits, latest streak end represents the last slip-up
+		// current streak = clean days since last slip-up
 		daysDiff := util.GetDayDiff(latestStreak.StreakEnd, today)
-		if daysDiff-1 >= 0 {
-			daysDiff--
+		// Subtract 1 because today hasn't passed yet and the slip-up day doesn't count as clean
+		currentStreak := daysDiff - 1
+		if currentStreak < 0 {
+			currentStreak = 0
 		}
-		return daysDiff, nil
+		return currentStreak, nil
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
 		return 0, err
@@ -211,28 +214,93 @@ func GetHabitStatsForRange(appContext context.Context, habitName string, startDa
 	}
 	heatmap := make([]bool, util.GetDayDiff(startDate, endDate)+1)
 	totalStreakDaysInRange := 0
-	for _, streak := range streaksLst {
-		for date := streak.StreakStart; util.CompareDate(date, streak.StreakEnd) >= 0; date = date.AddDate(0, 0, 1) {
-			if util.CompareDate(date, startDate) == 1 || util.CompareDate(date, endDate) == -1 {
-				// skip partial dates that may be out of range. (< startDate or > endDate)
-				continue
-			}
-			// now date is >= startdate && date <= endDate
+
+	// For quit habits with no logs, all days from creation onwards are clean (true in heatmap)
+	if habit.HabitType == store.HabitTypeQuit && len(streaksLst) == 0 {
+		// No logs yet - all days from creation up to yesterday are clean
+		// Today is not counted as completed yet since the day hasn't passed
+		today := time.Now()
+		yesterday := util.GetPrevDayOf(today)
+		effectiveStart := startDate
+		if util.CompareDate(habit.CreatedAt, startDate) == -1 {
+			effectiveStart = habit.CreatedAt
+		}
+		effectiveEnd := endDate
+		// Don't count today or future dates as completed
+		if util.CompareDate(yesterday, endDate) == 1 {
+			effectiveEnd = yesterday
+		}
+		for date := effectiveStart; util.CompareDate(date, effectiveEnd) >= 0; date = date.AddDate(0, 0, 1) {
 			idx := util.GetDayDiff(startDate, date)
-			if util.IsSameDate(date, streak.StreakEnd) && habit.HabitType == store.HabitTypeQuit {
-				// for quitting habits last day is not considered as a streak, but is just a marker
-				continue
-			}
 			heatmap[idx] = true
 			totalStreakDaysInRange++
 		}
+	} else {
+		// Process streaks from database
+		today := time.Now()
+		for _, streak := range streaksLst {
+			for date := streak.StreakStart; util.CompareDate(date, streak.StreakEnd) >= 0; date = date.AddDate(0, 0, 1) {
+				if util.CompareDate(date, startDate) == 1 || util.CompareDate(date, endDate) == -1 {
+					// skip partial dates that may be out of range. (< startDate or > endDate)
+					continue
+				}
+				// now date is >= startdate && date <= endDate
+				idx := util.GetDayDiff(startDate, date)
+				if util.IsSameDate(date, streak.StreakEnd) && habit.HabitType == store.HabitTypeQuit {
+					// for quitting habits last day is not considered as a streak, but is just a marker
+					continue
+				}
+				// Skip today for improve habits unless it's been logged
+				// For improve habits, today is included if logged (streak_end >= today means today is logged)
+				if habit.HabitType == store.HabitTypeImprove && util.IsSameDate(date, today) {
+					// Only count today if this streak includes today (i.e., it was logged)
+					if util.CompareDate(streak.StreakEnd, today) < 0 {
+						// This streak ends before today, don't count today
+						continue
+					}
+				}
+				heatmap[idx] = true
+				totalStreakDaysInRange++
+			}
+		}
+	}
+
+	// Calculate total days to consider (only from habit creation date onwards)
+	today := time.Now()
+	yesterday := util.GetPrevDayOf(today)
+
+	effectiveStartDate := startDate
+	if util.CompareDate(habit.CreatedAt, startDate) == -1 {
+		// habit was created after the start of the range
+		effectiveStartDate = habit.CreatedAt
+	}
+
+	effectiveEndDate := endDate
+	// For quit habits: if there are no logs (no slip-ups), count up to yesterday
+	// If there are logs (slip-ups), count up to today to include today's slip-up in missed count
+	if habit.HabitType == store.HabitTypeQuit && len(streaksLst) == 0 {
+		// No slip-ups logged yet, don't count today since day hasn't passed
+		if util.CompareDate(yesterday, endDate) == 1 {
+			effectiveEndDate = yesterday
+		}
+	} else {
+		// Has logs or is an improve habit, count up to today
+		if util.CompareDate(today, endDate) == 1 {
+			effectiveEndDate = today
+		}
+	}
+
+	// If effectiveStartDate is after effectiveEndDate, no days to count
+	totalDaysInRange := 0
+	if util.CompareDate(effectiveStartDate, effectiveEndDate) >= 0 {
+		totalDaysInRange = util.GetDayDiff(effectiveStartDate, effectiveEndDate) + 1
 	}
 
 	hs := &types.HabitStatsForRange{
 		Habit:                  habit,
 		Heatmap:                heatmap,
 		TotalStreakDaysInRange: totalStreakDaysInRange,
-		TotalMissesInRange:     len(heatmap) - totalStreakDaysInRange,
+		TotalMissesInRange:     totalDaysInRange - totalStreakDaysInRange,
 		RangeStart:             startDate,
 		RangeEnd:               endDate,
 	}

@@ -91,18 +91,28 @@ streakr stats running   # Specific habit details
 Contributions are welcome! Here's how to get started:
 
 ### Development Setup
+
+**First time setup:**
 ```bash
 git clone https://github.com/yourusername/streakr.git
 cd streakr
+
+# Install development tools (cobra-cli, sqlc, migrate)
+make bootstrap
+
+# Add Go binaries to your PATH (add to ~/.bashrc or ~/.zshrc)
+export PATH=$PATH:$HOME/go/bin
+
+# Build and install
 make install
 ```
-install cobra-cli via 
-```bash
-go install github.com/spf13/cobra-cli@latest
-go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
-```
-this lets you add a command or subcommand via 
+The `make bootstrap` command installs:
+- `cobra-cli` - For adding new commands
+- `sqlc` - For generating type-safe Go code from SQL
+- `migrate` - For database migrations
+
+**Adding new commands:**
 ```bash
-cobra-cli add foo
+cobra-cli add <command_name>
 ```

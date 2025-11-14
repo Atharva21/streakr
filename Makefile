@@ -1,6 +1,20 @@
 BINARY_NAME=streakr
 .DEFAULT_GOAL := install
 
+bootstrap:
+	@ echo "Installing development tools..."
+	@ go install github.com/spf13/cobra-cli@latest
+	@ go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+	@ go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+	@ echo "✓ cobra-cli installed"
+	@ echo "✓ sqlc installed"
+	@ echo "✓ migrate installed"
+	@ echo ""
+	@ echo "Development tools installed successfully!"
+	@ echo "Make sure $$GOPATH/bin or $$HOME/go/bin is in your PATH"
+	@ echo "Add this to your shell rc file if not already present:"
+	@ echo "  export PATH=\$$PATH:\$$HOME/go/bin"
+
 build: generate tidy fmt
 	@ GOOS=linux GOARCH=amd64 go build -o bin/linux/${BINARY_NAME}
 
@@ -32,6 +46,7 @@ clean-install: clean install
 
 help:
 	@ echo "Available commands:"
+	@ echo "  make bootstrap         - Install development tools (cobra-cli, sqlc, migrate)"
 	@ echo "  make build             - Build the binary"
 	@ echo "  make run               - Build and run the binary"
 	@ echo "  make clean             - Clean build artifacts"
@@ -43,4 +58,4 @@ help:
 	@ echo "  make clean-install     - Clean any temporary files and do a fresh install"
 	@ echo "  make help              - Show this help message"
 
-.PHONY: build run clean test tidy fmt install generate clean-install help
+.PHONY: bootstrap build run clean test tidy fmt install generate clean-install help

@@ -286,9 +286,21 @@ func GetHabitStatsForRange(appContext context.Context, habitName string, startDa
 
 	effectiveStartDate := startDate
 	// For quit habits, the creation day doesn't count - start from day after
+	// UNLESS there's a slip-up logged on the creation day itself
 	habitStartDate := habit.CreatedAt
 	if habit.HabitType == store.HabitTypeQuit {
-		habitStartDate = util.GetNextDayOf(habit.CreatedAt)
+		// Check if any streak has a slip-up on the creation day
+		hasCreationDaySlipup := false
+		for _, streak := range streaksLst {
+			if util.IsSameDate(streak.StreakEnd, habit.CreatedAt) {
+				hasCreationDaySlipup = true
+				break
+			}
+		}
+		// Only skip creation day if there's no slip-up on that day
+		if !hasCreationDaySlipup {
+			habitStartDate = util.GetNextDayOf(habit.CreatedAt)
+		}
 	}
 
 	if util.CompareDate(habitStartDate, startDate) == -1 {
